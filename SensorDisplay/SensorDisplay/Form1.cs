@@ -42,32 +42,39 @@ namespace SensorDisplay
 
         private void serialPort1_DataReceived(object sender, System.IO.Ports.SerialDataReceivedEventArgs e)
         {
+            //Get the data being received in serial port
             SerialPort sp = (SerialPort)sender;
             string data = sp.ReadExisting();
 
-            string[] splitData = data.Split(',');
-
-            for (int i = 0; i < splitData.Length; i++ )
+            //Catch exception error when "/r/n" comes through
+            try
             {
-                if (splitData[i] != "")
-                {
-                    testingList.Add(Convert.ToInt32(splitData[i]));
-                    dataManager.addData(Convert.ToInt32(splitData[i]));
-                }
+                //Add data into appropriate places
+                testingList.Add(Convert.ToInt32(data));
+                dataManager.addData(Convert.ToInt32(data));
+            }
+            catch (FormatException E)
+            {
+                //Write error to console
+                Console.WriteLine(E.ToString());
             }
 
                 
         }
 
+        //Button to start everything up
         private void button1_Click(object sender, EventArgs e)
         {
             listBox1.Items.Clear();
             listBox1.Items.Add("Port Open");
+
+            //Start reading data from serial port
             serialPort1.PortName = "COM5";
             serialPort1.Open();
             timer1.Enabled = true;
         }
 
+        //Button to close everything off
         private void button2_Click(object sender, EventArgs e)
         {
             serialPort1.Close();
@@ -78,6 +85,7 @@ namespace SensorDisplay
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            //Only do things if there has been new data received from serial port
             if (previousListLength != testingList.Count())
             {
                 //Display collected data into listbox
@@ -89,12 +97,12 @@ namespace SensorDisplay
                 }
                 listBox1.TopIndex = listBox1.Items.Count - 1;
 
-                //Do display things
+                //Do graphical display things
                 int[] dataToDisplay = dataManager.getArray();
                 displayManager.Draw(dataToDisplay);
+                offScreenCanvas.DrawLine(new Pen(Color.Black), new Point(400, 400), new Point(400, 50));
+                offScreenCanvas.DrawLine(new Pen(Color.Black), new Point(400, 400), new Point(1000, 400));
                 mainCanvas.DrawImage(offScreenBitmap, 0, 0);
-                mainCanvas.DrawLine(new Pen(Color.Black), new Point(400, 400), new Point(400, 50));
-                mainCanvas.DrawLine(new Pen(Color.Black), new Point(400, 400), new Point(1000, 400));
             }
 
             previousListLength = testingList.Count();

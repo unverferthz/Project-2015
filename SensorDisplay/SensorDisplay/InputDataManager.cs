@@ -30,6 +30,8 @@ namespace SensorDisplay
             if (numInArray == maxInArray)
             {
                 makeRoomInArray();
+
+                //Add new number onto end
                 inputData[maxInArray - 1] = newNumber;
             }
             else
