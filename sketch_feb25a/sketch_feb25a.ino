@@ -7,15 +7,11 @@
 
 
 Ultrasonic ultrasonic (12,13);
-
 const int chipSelect = 53;
-const int buttonPin = 2;
-
 File dataFile;
 
 void setup() {
    Serial.begin(9600);
-   pinMode(buttonPin, INPUT);
    initSD();
 }
 
@@ -34,20 +30,18 @@ void initSD() {
 void loop()
 {
 
- if(!buttonState == HIGH){
-     
-   dataFile = SD.open("datalog.txt", FILE_WRITE);
-   int distance = ultrasonic.Ranging(CM);
-   
-   if(dataFile){ 
   
-     if (distance < 100) {
-      dataFile.print("d");
-      dataFile.print(distance);
-      Serial.print(distance);
-      Serial.print("t");
-      dataFile.close();
-     }
+ dataFile = SD.open("datalog.txt", FILE_WRITE);
+ int distance = ultrasonic.Ranging(CM);
+ 
+ if(dataFile){ 
+
+   if (distance < 100) {
+    dataFile.print("d");
+    dataFile.print(distance);
+    Serial.print(distance);
+    Serial.print("t");
+    dataFile.close();
    }
  }
  
