@@ -15,7 +15,6 @@ int objectPassedCount = 0;
 boolean writeToggle = false;
 boolean buttonRelease = true;
 boolean canCount = true;
-int loopsWithNoObjectInfrontCount = 0;
 
 void setup() {
    Serial.begin(9600);
@@ -56,11 +55,14 @@ void buttonCheck(){
     if(!writeToggle)
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
       Serial.println("Writing turned off");
 =======
       Serial.print("Objects countedL ");
       Serial.println(objectPassedCount);
 >>>>>>> origin/master
+=======
+>>>>>>> parent of ca39305... Attempted fix of sensor reading errors
       File objectPassCountFile = SD.open("objectPassCount.txt", FILE_WRITE);
       objectPassCountFile.print("Objects counted: ");
       objectPassCountFile.println(objectPassedCount);
@@ -103,11 +105,14 @@ void writeToSD(){
    if (distance < 100) 
    {
 <<<<<<< HEAD
+<<<<<<< HEAD
      Serial.print(distance);
 =======
      loopsWithNoObjectInfrontCount = 0;
      
 >>>>>>> origin/master
+=======
+>>>>>>> parent of ca39305... Attempted fix of sensor reading errors
      //Open the file or create and open file if it doesn't exist already.
      dataFile = SD.open("datalog.txt", FILE_WRITE);
       
@@ -139,15 +144,7 @@ void writeToSD(){
    //Nothing is close enough to sensor, enable counting again.
    else
    {
-     if(loopsWithNoObjectInfrontCount > 5)
-     {
-       canCount = true;
-       loopsWithNoObjectInfrontCount = 0;
-     }
-     else
-     {
-       loopsWithNoObjectInfrontCount++;
-     }
+     canCount = true;
    }
  }
 }//End writeToSD
