@@ -15,6 +15,7 @@ int objectPassedCount = 0;
 boolean writeToggle = false;
 boolean buttonRelease = true;
 boolean canCount = true;
+int loopsWithNoObjectInfrontCount = 0;
 
 void setup() {
    Serial.begin(9600);
@@ -54,6 +55,8 @@ void buttonCheck(){
     //If writing was turned off, write to a file saying how many people it counting during the time it was writing
     if(!writeToggle)
     {
+      Serial.print("Objects countedL ");
+      Serial.println(objectPassedCount);
       File objectPassCountFile = SD.open("objectPassCount.txt", FILE_WRITE);
       objectPassCountFile.print("Objects counted: ");
       objectPassCountFile.println(objectPassedCount);
@@ -95,6 +98,8 @@ void writeToSD(){
    //If distance is less than 2m
    if (distance < 200) 
    {
+     loopsWithNoObjectInfrontCount = 0;
+     
      //Open the file or create and open file if it doesn't exist already.
      dataFile = SD.open("datalog.txt", FILE_WRITE);
       
@@ -123,7 +128,15 @@ void writeToSD(){
    //Nothing is close enough to sensor, enable counting again.
    else
    {
-     canCount = true;
+     if(loopsWithNoObjectInfrontCount > 5)
+     {
+       canCount = true;
+       loopsWithNoObjectInfrontCount = 0;
+     }
+     else
+     {
+       loopsWithNoObjectInfrontCount++;
+     }
    }
  }
 }//End writeToSD
