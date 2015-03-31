@@ -3,7 +3,7 @@
 #include "Ultrasonic.h"
 #include <FileIO.h>
 
-Ultrasonic ultrasonic (1,1);
+Ultrasonic ultrasonic (12,13);
 const int ledPin = 3;
 const int buttonPin = 2; 
 const int chipSelect = 53;
@@ -15,6 +15,7 @@ int objectPassedCount = 0;
 boolean writeToggle = false;
 boolean buttonRelease = true;
 boolean canCount = true;
+int loopsWithNoObjectInfrontCount = 0;
 
 void setup() {
    Serial.begin(9600);
@@ -54,15 +55,8 @@ void buttonCheck(){
     //If writing was turned off, write to a file saying how many people it counting during the time it was writing
     if(!writeToggle)
     {
-<<<<<<< HEAD
-<<<<<<< HEAD
-      Serial.println("Writing turned off");
-=======
-      Serial.print("Objects countedL ");
+      Serial.print("Objects counted: ");
       Serial.println(objectPassedCount);
->>>>>>> origin/master
-=======
->>>>>>> parent of ca39305... Attempted fix of sensor reading errors
       File objectPassCountFile = SD.open("objectPassCount.txt", FILE_WRITE);
       objectPassCountFile.print("Objects counted: ");
       objectPassCountFile.println(objectPassedCount);
@@ -100,31 +94,21 @@ void writeToSD(){
   {
     //Read in distance from sonar sensor
     int distance = ultrasonic.Ranging(CM);
-    Serial.print(distance);
+    
    //If distance is less than 2m
-   if (distance < 100) 
+   if (distance < 200) 
    {
-<<<<<<< HEAD
-<<<<<<< HEAD
-     Serial.print(distance);
-=======
      loopsWithNoObjectInfrontCount = 0;
      
->>>>>>> origin/master
-=======
->>>>>>> parent of ca39305... Attempted fix of sensor reading errors
      //Open the file or create and open file if it doesn't exist already.
      dataFile = SD.open("datalog.txt", FILE_WRITE);
       
      //If there is a data file, write into it
      if(dataFile)
      { 
-       
-       Serial.println("Datafile opened");
        //Can only read 1 object until sensor reads nothing again, to avoid counting 1 object multiple times.
        if(canCount)
        {
-         Serial.println("Counted");
          objectPassedCount++;
          canCount = false;
          
@@ -144,7 +128,15 @@ void writeToSD(){
    //Nothing is close enough to sensor, enable counting again.
    else
    {
-     canCount = true;
+     if(loopsWithNoObjectInfrontCount > 5)
+     {
+       canCount = true;
+       loopsWithNoObjectInfrontCount = 0;
+     }
+     else
+     {
+       loopsWithNoObjectInfrontCount++;
+     }
    }
  }
 }//End writeToSD
