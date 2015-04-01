@@ -57,11 +57,16 @@ void buttonCheck(){
     {
       Serial.print("Objects counted: ");
       Serial.println(objectPassedCount);
-      File objectPassCountFile = SD.open("objectPassCount.txt", FILE_WRITE);
-      objectPassCountFile.print("Objects counted: ");
-      objectPassCountFile.println(objectPassedCount);
-      objectPassCountFile.close();
+     // File objectPassCountFile = SD.open("objectPassCount.txt", FILE_WRITE);
+      //objectPassCountFile.print("Objects counted: ");
+      //objectPassCountFile.println(objectPassedCount);
+      //objectPassCountFile.close();
       
+      dataFile = SD.open("datalog.txt", FILE_WRITE);
+      dataFile.println("");
+      dataFile.print("Objects Counted: ");
+      dataFile.println(objectPassedCount);
+      dataFile.close();
       
       //Reset counter for next round of counting
       objectPassedCount = 0;
@@ -115,7 +120,7 @@ void writeToSD(){
          //write to SD card
          dataFile.print("d");
          dataFile.print(distance);
-         dataFile.print(", ");
+         dataFile.print(",");
         
          //Write to serial
          Serial.print(distance);
