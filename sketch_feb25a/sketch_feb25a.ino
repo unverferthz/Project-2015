@@ -9,6 +9,8 @@ const int buttonPin = 2;
 const int chipSelect = 53;
 
 File dataFile;
+File objectCountFile;
+
 int ledState = LOW;
 int buttonState = 0;
 int objectPassedCount = 0;
@@ -57,10 +59,11 @@ void buttonCheck(){
     {
       Serial.print("Objects counted: ");
       Serial.println(objectPassedCount);
-     // File objectPassCountFile = SD.open("objectPassCount.txt", FILE_WRITE);
-      //objectPassCountFile.print("Objects counted: ");
-      //objectPassCountFile.println(objectPassedCount);
-      //objectPassCountFile.close();
+      objectCountFile = SD.open("objectPassCount.txt", FILE_WRITE);
+      delay(500);
+      objectCountFile.print("Objects counted: ");
+      objectCountFile.println(objectPassedCount);
+      objectCountFile.close();
       
       dataFile = SD.open("datalog.txt", FILE_WRITE);
       dataFile.println("");
