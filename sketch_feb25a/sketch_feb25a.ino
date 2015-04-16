@@ -3,7 +3,8 @@
 #include "Ultrasonic.h"
 #include <FileIO.h>
 
-Ultrasonic ultrasonic (12,13);
+Ultrasonic sensor1 (12,13);
+Ultrasonic sensor2(10,11);
 const int ledPin = 3;
 const int buttonPin = 2; 
 const int chipSelect = 53;
@@ -100,44 +101,82 @@ void writeToSD(){
   //If true, can write into SD card
   if(writeToggle)
   {
-    //Read in distance from sonar sensor
-    int distance = ultrasonic.Ranging(CM);
-    Serial.println(distance);
+    //Read in distance from sonar sensors
+    int sensor1Distance = sensor1.Ranging(CM);
+    
+    //Delay so sensors don't interfere with each other
+    delay(20);
+    
+    int sensor2Distance = sensor2.Ranging(CM);
+    
+    Serial.print("Sensor 1: "); Serial.println(sensor1Distance);
+    Serial.print("Sensor 2: "); Serial.println(sensor2Distance);
+    
     
    //If distance is less than 2m
-   if (distance < 200) 
+   if (sensor1Distance < 200) 
    {
      loopsWithNoObjectInfrontCount = 0;
      
-     //Open the file or create and open file if it doesn't exist already.
-     dataFile = SD.open("datalog.txt", FILE_WRITE);
-      
-     //If there is a data file, write into it
-     if(dataFile)
+     //Can only read 1 object until sensor reads nothing again, to avoid counting 1 object multiple times.
+     if(canCount)
      { 
-       //Can only read 1 object until sensor reads nothing again, to avoid counting 1 object multiple times.
-       if(canCount)
+       //Open the file or create and open file if it doesn't exist already.
+       dataFile = SD.open("datalog.txt", FILE_WRITE);
+       
+       //If there is a data file, write into it
+       if(dataFile)
        {
          objectPassedCount++;
          canCount = false;
          
          //write to SD card
          dataFile.print("d");
-         dataFile.print(distance);
+         dataFile.print(sensor1Distance);
          dataFile.print(",");
         
          //Write to serial
          Serial.print(distance);
        }
+       
+       //Close SD cards file
+       dataFile.close();
     }
-    
-    //Close SD cards file
-    dataFile.close();
    }//End of distance check
-   //Nothing is close enough to sensor, enable counting again.
+   //Sensor1 picked up nothing, check sensor 2
+   else if(sensor2Distance < 200)
+   {
+     loopsWithNoObjectInfrontCount = 0;
+     
+     //Can only read 1 object until sensor reads nothing again, to avoid counting 1 object multiple times.
+     if(canCount)
+     { 
+       //Open the file or create and open file if it doesn't exist already.
+       dataFile = SD.open("datalog.txt", FILE_WRITE);
+       
+       //If there is a data file, write into it
+       if(dataFile)
+       {
+         objectPassedCount++;
+         canCount = false;
+         
+         //write to SD card
+         dataFile.print("d");
+         dataFile.print(sensor2Distance);
+         dataFile.print(",");
+        
+         //Write to serial
+         Serial.print(distance);
+       }
+       
+       //Close SD cards file
+       dataFile.close();
+    }
+   }
+   //Nothing is close enough to sensor, try enable counting again.
    else
    {
-     if(loopsWithNoObjectInfrontCount > 5)
+     if(loopsWithNoObjectInfrontCount > 4)
      {
        canCount = true;
        loopsWithNoObjectInfrontCount = 0;
