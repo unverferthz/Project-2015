@@ -102,6 +102,7 @@ void writeToSD(){
   {
     //Read in distance from sonar sensor
     int distance = ultrasonic.Ranging(CM);
+    Serial.println(distance);
     
    //If distance is less than 2m
    if (distance < 200) 
