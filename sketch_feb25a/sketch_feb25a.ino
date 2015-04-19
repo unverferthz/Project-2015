@@ -1,13 +1,16 @@
+
+#include <NewPing.h>
 #include <Time.h>
 #include <SD.h>
-#include "Ultrasonic.h"
 #include <FileIO.h>
 
-Ultrasonic sensor1 (12,13);
-Ultrasonic sensor2(10,11);
+const int MAX_DISTANCE = 200;
 const int ledPin = 3;
 const int buttonPin = 2; 
 const int chipSelect = 53;
+
+NewPing sensor1(13,12,MAX_DISTANCE);
+NewPing sensor2(10,11,MAX_DISTANCE);
 
 File dataFile;
 File objectCountFile;
@@ -21,7 +24,7 @@ boolean canCount = true;
 int loopsWithNoObjectInfrontCount = 0;
 
 void setup() {
-   Serial.begin(9600);
+   Serial.begin(115200);
    pinMode(ledPin, OUTPUT);
    pinMode(buttonPin, INPUT);
    initSD();
@@ -102,13 +105,15 @@ void writeToSD(){
   if(writeToggle)
   {
     //Read in distance from sonar sensors
-    int sensor1Distance = sensor1.Ranging(CM);
+    int sensor1Time = sensor1.ping();
     
     //Delay so sensors don't interfere with each other
     delay(20);
     
-    int sensor2Distance = sensor2.Ranging(CM);
+    int sensor2Time = sensor2.ping();
     
+    int sensor1Distance = sensor1Time / US_ROUNDTRIP_CM;
+    int sensor2Distance = sensor2Time / US_ROUNDTRIP_CM;
     Serial.print("Sensor 1: "); Serial.println(sensor1Distance);
     Serial.print("Sensor 2: "); Serial.println(sensor2Distance);
     
@@ -136,7 +141,7 @@ void writeToSD(){
          dataFile.print(",");
         
          //Write to serial
-         Serial.print(distance);
+         Serial.print(sensor1Distance);
        }
        
        //Close SD cards file
@@ -166,7 +171,7 @@ void writeToSD(){
          dataFile.print(",");
         
          //Write to serial
-         Serial.print(distance);
+         Serial.print(sensor2Distance);
        }
        
        //Close SD cards file

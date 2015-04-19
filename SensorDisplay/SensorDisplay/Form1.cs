@@ -69,7 +69,7 @@ namespace SensorDisplay
             listBox1.Items.Add("Port Open");
 
             //Start reading data from serial port
-            serialPort1.PortName = "COM5";
+            serialPort1.PortName = "COM4";
             serialPort1.Open();
             timer1.Enabled = true;
         }
