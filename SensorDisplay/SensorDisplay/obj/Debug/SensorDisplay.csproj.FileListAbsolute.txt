@@ -7,6 +7,11 @@ D:\Polytech Work\Project\Programs\SensorDisplay\SensorDisplay\obj\Debug\SensorDi
 D:\Polytech Work\Project\Programs\SensorDisplay\SensorDisplay\obj\Debug\SensorDisplay.csproj.GenerateResource.Cache
 D:\Polytech Work\Project\Programs\SensorDisplay\SensorDisplay\obj\Debug\SensorDisplay.exe
 D:\Polytech Work\Project\Programs\SensorDisplay\SensorDisplay\obj\Debug\SensorDisplay.pdb
+<<<<<<< HEAD
+H:\My Documents\GitHub\CZ_Project2015\Project-2015\SensorDisplay\SensorDisplay\bin\Debug\SensorDisplay.exe.config
+H:\My Documents\GitHub\CZ_Project2015\Project-2015\SensorDisplay\SensorDisplay\obj\Debug\SensorDisplay.exe
+H:\My Documents\GitHub\CZ_Project2015\Project-2015\SensorDisplay\SensorDisplay\obj\Debug\SensorDisplay.pdb
+=======
 D:\Polytech Work\Project\Github\Project-2015\SensorDisplay\SensorDisplay\bin\Debug\SensorDisplay.exe.config
 D:\Polytech Work\Project\Github\Project-2015\SensorDisplay\SensorDisplay\obj\Debug\SensorDisplay.exe
 D:\Polytech Work\Project\Github\Project-2015\SensorDisplay\SensorDisplay\obj\Debug\SensorDisplay.pdb
@@ -16,3 +21,4 @@ D:\Polytech Work\Project\Github\Project-2015\SensorDisplay\SensorDisplay\obj\Deb
 D:\Polytech Work\Project\Github\Project-2015\SensorDisplay\SensorDisplay\obj\Debug\SensorDisplay.Form1.resources
 D:\Polytech Work\Project\Github\Project-2015\SensorDisplay\SensorDisplay\obj\Debug\SensorDisplay.Properties.Resources.resources
 D:\Polytech Work\Project\Github\Project-2015\SensorDisplay\SensorDisplay\obj\Debug\SensorDisplay.csproj.GenerateResource.Cache
+>>>>>>> origin/master
