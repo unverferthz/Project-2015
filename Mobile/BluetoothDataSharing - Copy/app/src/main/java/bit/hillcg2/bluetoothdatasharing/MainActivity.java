@@ -1,9 +1,5 @@
 package bit.hillcg2.bluetoothdatasharing;
 
-import android.annotation.TargetApi;
-import android.bluetooth.BluetoothManager;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -23,6 +19,8 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.apache.http.client.protocol.ClientContextConfigurer;
+
 
 public class MainActivity extends Activity {
 
@@ -30,7 +28,6 @@ public class MainActivity extends Activity {
     Button btnListPaired;
     Button btnFindDevices;
     BluetoothAdapter bluetoothAdapter;
-    BluetoothManager bluetoothManager;
     Set<BluetoothDevice> pairedDevices;
     ArrayAdapter<String> bluetoothArrayAdapter;
     ArrayList<BluetoothDevice> foundDevices;
@@ -43,13 +40,11 @@ public class MainActivity extends Activity {
         init();
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void init() {
         deviceList = (ListView)findViewById(R.id.deviceList);
         btnListPaired = (Button)findViewById(R.id.btnListPaired);
         btnFindDevices = (Button)findViewById(R.id.btnFindDevices);
         foundDevices = new ArrayList<BluetoothDevice>();
-        bluetoothManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
 
         bluetoothArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         deviceList.setAdapter(bluetoothArrayAdapter);
@@ -59,22 +54,25 @@ public class MainActivity extends Activity {
         btnFindDevices.setOnClickListener(new findDevices());
         deviceList.setOnItemClickListener(new connectToClickedDevice());
 
-        if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE))
-        {
-            Toast.makeText(this, "Low energy bluetooth not supported", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
 
         //Get instance of bluetooth adapter;
-        bluetoothAdapter = bluetoothManager.getAdapter();
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        //Check if blue tooth is turned on
-        if(!bluetoothAdapter.isEnabled())
+        //Check if bluetooth is supported on the device
+        if(bluetoothAdapter != null)
         {
-            //Bring up screen for user to enable bluetooth
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, 1);
+            //Check if blue tooth is turned n
+            if(!bluetoothAdapter.isEnabled())
+            {
+                //Bring up screen for user to enable bluetooth
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, 1);
+            }
+        }
+        //Bluetooth not supported
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Bluetooth not supported", Toast.LENGTH_LONG);
         }
     }
 
