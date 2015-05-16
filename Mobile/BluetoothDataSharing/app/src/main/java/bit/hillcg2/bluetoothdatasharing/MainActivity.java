@@ -1,16 +1,11 @@
 package bit.hillcg2.bluetoothdatasharing;
 
-import android.annotation.TargetApi;
-import android.bluetooth.BluetoothManager;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import java.util.ArrayList;
 import java.util.Set;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -30,10 +25,8 @@ public class MainActivity extends Activity {
     Button btnListPaired;
     Button btnFindDevices;
     BluetoothAdapter bluetoothAdapter;
-    BluetoothManager bluetoothManager;
     Set<BluetoothDevice> pairedDevices;
     ArrayAdapter<String> bluetoothArrayAdapter;
-    ArrayList<BluetoothDevice> foundDevices;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,13 +36,10 @@ public class MainActivity extends Activity {
         init();
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void init() {
         deviceList = (ListView)findViewById(R.id.deviceList);
         btnListPaired = (Button)findViewById(R.id.btnListPaired);
         btnFindDevices = (Button)findViewById(R.id.btnFindDevices);
-        foundDevices = new ArrayList<BluetoothDevice>();
-        bluetoothManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
 
         bluetoothArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         deviceList.setAdapter(bluetoothArrayAdapter);
@@ -59,22 +49,25 @@ public class MainActivity extends Activity {
         btnFindDevices.setOnClickListener(new findDevices());
         deviceList.setOnItemClickListener(new connectToClickedDevice());
 
-        if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE))
-        {
-            Toast.makeText(this, "Low energy bluetooth not supported", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
 
         //Get instance of bluetooth adapter;
-        bluetoothAdapter = bluetoothManager.getAdapter();
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        //Check if blue tooth is turned on
-        if(!bluetoothAdapter.isEnabled())
+        //Check if bluetooth is supported on the device
+        if(bluetoothAdapter != null)
         {
-            //Bring up screen for user to enable bluetooth
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, 1);
+            //Check if blue tooth is turned n
+            if(!bluetoothAdapter.isEnabled())
+            {
+                //Bring up screen for user to enable bluetooth
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, 1);
+            }
+        }
+        //Bluetooth not supported
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Bluetooth not supported", Toast.LENGTH_LONG);
         }
     }
 
@@ -83,20 +76,12 @@ public class MainActivity extends Activity {
 
         @Override
         public void onClick(View view) {
-            //Clear out old values
-            bluetoothArrayAdapter.clear();
-            foundDevices.clear();
-
-            //Update list to show device
-            bluetoothArrayAdapter.notifyDataSetChanged();
-
             //Get paired devices
             pairedDevices = bluetoothAdapter.getBondedDevices();
 
             for(BluetoothDevice device: pairedDevices)
             {
                 bluetoothArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-                foundDevices.add(device);
             }
 
             Toast.makeText(getApplicationContext(), "Listed paired devices", Toast.LENGTH_LONG);
@@ -113,7 +98,6 @@ public class MainActivity extends Activity {
             {
                 //Clear out previous listed devices
                 bluetoothArrayAdapter.clear();
-                foundDevices.clear();
 
                 //Start search for devices
                 bluetoothAdapter.startDiscovery();
@@ -134,11 +118,9 @@ public class MainActivity extends Activity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 //Add to array adapter
                 bluetoothArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-                foundDevices.add(device);
 
                 //Update list to show device
                 bluetoothArrayAdapter.notifyDataSetChanged();
-
             }
         }
     };
@@ -161,13 +143,7 @@ public class MainActivity extends Activity {
 
         @Override
         public void onItemClick(AdapterView<?> list, View item, int position, long id) {
-            BluetoothDevice clickedDevice = foundDevices.get(position);
 
-            String name = clickedDevice.getName();
-            Toast.makeText(getBaseContext(), name, Toast.LENGTH_LONG).show();
-
-            ConnectThread connectionToDevice = new ConnectThread(clickedDevice, bluetoothAdapter);
-            connectionToDevice.run();
         }
     }
 
@@ -175,79 +151,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
 
-        if(bluetoothAdapter != null){
-            bluetoothAdapter.cancelDiscovery();
-        }
-
         //Unregister receiver to stop crash
         unregisterReceiver(mReceiver);
     }
-
-
-   /* private class ConnectedThread extends Thread{
-        private final BluetoothSocket mSocket;
-        private final InputStream mInStream;
-        private final OutputStream mOutStream;
-
-        public ConnectedThread(BluetoothSocket socket){
-            mSocket = socket;
-            InputStream tmpIn = null;
-            OutputStream tmpOut = null;
-
-            try
-            {
-                tmpIn = socket.getInputStream();
-                tmpOut = socket.getOutputStream();
-            }
-            catch(IOException e)
-            {
-
-            }
-
-            mInStream = tmpIn;
-            mOutStream = tmpOut;
-        }
-
-        public void run(){
-            //Buffer store for stream
-            byte[] buffer = new byte[1024];
-
-            //bytes returned from read
-            int bytes;
-
-            //Keep listening to the input stream until an exception occurs
-            while(true)
-            {
-                try
-                {
-                    bytes = mInStream.read(buffer);
-                    //mHanlder.obtainMesage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
-
-                }
-                catch(IOException e)
-                {
-
-                }
-            }
-        }
-
-        //Call from main activity to send out data
-        public void write(byte[] bytes){
-            try
-            {
-                mOutStream.write(bytes);
-            }
-            catch(IOException e)
-            {
-
-            }
-        }
-
-        // Call this from the main activity to shutdown the connection
-        public void cancel() {
-            try {
-                mSocket.close();
-            } catch (IOException e) { }
-        }
-    }*/
 }

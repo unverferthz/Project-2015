@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">BluetoothDataSharing</string>
-    <string name="action_settings">Settings</string>
-    <string name="btnSearch">Search New Devices / Cancel</string>
-    <string name="btnList">List Paired Devices</string>
-</resources>
