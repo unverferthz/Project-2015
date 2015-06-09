@@ -1,9 +1,10 @@
 #include "Adafruit_BLE_UART.h"
 #include <SPI.h>
+
 #include <FileIO.h>
 #include <NewPing.h>
 
-const int MAX_DISTANCE = 200;
+const int MAX_DISTANCE = 400;
 const int ledPin = 4;
 const int buttonPin = 3; 
 const int chipSelect = 53;
@@ -24,8 +25,8 @@ int buttonState = 0;
 int objectPassedCount = 0;
 int loopsWithNoObjectInfrontCount = 0;
 
+boolean switchTurnedOff = true;
 boolean writeToggle = false;
-boolean buttonRelease = true;
 boolean canCount = true;
 
 
@@ -33,7 +34,7 @@ void setup() {
    Serial.begin(9600);
    pinMode(ledPin, OUTPUT);
    pinMode(buttonPin, INPUT);
-   BTLEserial.setDeviceName("Pingas"); /* 7 characters max! */
+   BTLEserial.setDeviceName("Ardu"); /* 7 characters max! */
    BTLEserial.begin();
 
 }
@@ -66,25 +67,36 @@ void buttonCheck(){
   //Check if button is pushed down or not
   buttonState = digitalRead(buttonPin);
   
-  //If button is pushed and first time through loop while button is down, stops toggling if button is held down
-  if(buttonState == HIGH && buttonRelease)
+  if(buttonState == HIGH)
   {
+    writeToggle = true;
+  }
+  else
+  {
+    switchTurnedOff = false;
+    writeToggle = false;
+  }
+  //If button is pushed and first time through loop while button is down, stops toggling if button is held down
+
+
     //Set bool false, so this if statement doesn't loop
-    buttonRelease = false;
+    
     
     //Toggle if SD is being written to
     writeToggle = !writeToggle;
     
     //If writing was turned off, write to a file saying how many people it counting during the time it was writing
-    if(!writeToggle)
-    {
-     
+    if(!writeToggle && !switchTurnedOff && status == ACI_EVT_CONNECTED )
+     {
+       switchTurnedOff = true;
       Serial.print("Objects counted:");
       Serial.print(objectPassedCount);
       
-      if (status == ACI_EVT_CONNECTED) {
+       if (status == ACI_EVT_CONNECTED) {
         // Read a line from Serial
         Serial.setTimeout(100); // 100 millisecond timeout
+        
+        //String s = "Objects counted " + String(objectPassedCount);
         String s = String(objectPassedCount);
   
         // We need to convert the line to bytes, no more than 20 at this time
@@ -96,12 +108,12 @@ void buttonCheck(){
   
         // write the data
         BTLEserial.write(sendbuffer, sendbuffersize);
-      }
-    }
-    dataFile.close();
-      //Reset counter for next round of counting
+       }
       objectPassedCount = 0;
-    }
+     }
+      //Reset counter for next round of counting
+      
+    
    
     //Turn LED on or off, to indicated if SD is being written to
     if(ledState == HIGH)
@@ -115,31 +127,28 @@ void buttonCheck(){
   
   
   //If button isn't being pushed then enable the first if statement again
-  if(buttonState == LOW)
-  {
-   buttonRelease = true; 
-  }
+
   
 } //End buttonCheck
 
 //Writes data into the SD card if writing is enabled and sensor picks up objects
 void checkForCount(){
-  
+  aci_evt_opcode_t status = BTLEserial.getState();
   //If true, can write into SD card
-  if(writeToggle)
+  if(writeToggle && status == ACI_EVT_CONNECTED)
   {
     //Read in distance from sonar sensors
     int sensor1Time = sensor1.ping();
     
     //Delay so sensors don't interfere with each other
-    delay(20);
+    //           delay(20);
     
     //int sensor2Time = sensor2.ping();
     
     int sensor1Distance = sensor1Time / US_ROUNDTRIP_CM;
-
+    sendData(String(sensor1Distance));
    //If distance is less than 2m
-   if (sensor1Distance < 150  && sensor1Distance > 0) 
+   if (sensor1Distance < 10000  && sensor1Distance > 0) 
    {
      loopsWithNoObjectInfrontCount = 0;
      
@@ -150,6 +159,8 @@ void checkForCount(){
          canCount = false;
          Serial.print("counted ");
          Serial.println(objectPassedCount);  
+         //sendData("Distance " + String(sensor1Distance) + " cm");
+         sendData(String(sensor1Distance));
     }
    }//End of distance check
    else
@@ -183,13 +194,14 @@ void recieveData() {
   }
 }
 
-void sendData() {
+void sendData(String data) {
+ 
+  
  aci_evt_opcode_t status = BTLEserial.getState();
-  if (Serial.available()) {
       // Read a line from Serial
       Serial.setTimeout(100); // 100 millisecond timeout
-      String s = Serial.readString();
-
+      String s = data;
+      
       // We need to convert the line to bytes, no more than 20 at this time
       uint8_t sendbuffer[20];
       s.getBytes(sendbuffer, 20);
@@ -199,22 +211,22 @@ void sendData() {
 
       // write the data
       BTLEserial.write(sendbuffer, sendbuffersize);
-    }
+    
 }
 void loop()
 {  
   //Checks for the status of the bluetooth connection
   bluetoothCheck();
-  
+  aci_evt_opcode_t status = BTLEserial.getState();
   //Check for button press
   buttonCheck();
-  
+
   //Set LED to it's current state(lit or unlit)
+
   digitalWrite(ledPin, ledState);
   
   //Try to write into SD card if enabled
   checkForCount();
   recieveData();
-  sendData();
  
 }//End loop
