@@ -1,29 +1,28 @@
 package bit.hillcg2.bluetoothapp;
 
 import android.content.Context;
-import android.content.pm.PackageInstaller;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
-
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
-
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
-import org.w3c.dom.Text;
-
+//import org.apache.commons.net.ftp.FTP;
+//import org.apache.commons.net.ftp.FTPClient;
+//import org.w3c.dom.Text;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class FTPManager {
-    FTPClient mFTP;
+    //FTPClient mFTP;
     JSch jsch;
     AssetManager am;
     DBManager dbManager;
@@ -46,7 +45,13 @@ public class FTPManager {
         File outputFile = null;
 
         try {
-            String fileName = "incidentData.txt";
+            DateFormat df = new SimpleDateFormat("hhmmss");
+            String currTime = df.format((Calendar.getInstance().getTime()));
+
+            df = new SimpleDateFormat("ddMMyyyy");
+            String currDate = df.format((Calendar.getInstance().getTime()));
+
+            String fileName = "incidentData_" + currTime + currDate + ".txt";
             FileOutputStream outputStream;
             outputStream = context.openFileOutput(fileName, context.MODE_PRIVATE);
             outputFile = new File(context.getFilesDir(), fileName);
@@ -96,7 +101,7 @@ public class FTPManager {
             String user = "unverzp1";
             String password = "11000712";
 
-            mFTP = new FTPClient();
+            //mFTP = new FTPClient();
             jsch = new JSch();
 
             try

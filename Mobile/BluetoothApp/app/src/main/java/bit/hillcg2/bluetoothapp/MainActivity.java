@@ -14,8 +14,10 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -57,6 +59,10 @@ public class MainActivity extends ActionBarActivity {
     private BluetoothAdapter BTAdapter;
     private BluetoothGattCharacteristic RXChar;
     private BluetoothGattCharacteristic TXChar;
+
+    LocationManager locationManager;
+    Criteria defaultCriteria;
+    String providerName;
 
     Button btnConnect;
     Button btnSend;
@@ -102,6 +108,10 @@ public class MainActivity extends ActionBarActivity {
             Toast.makeText(getBaseContext(), "Problem encountered", Toast.LENGTH_LONG).show();
             finish();
         }
+        //Set up location service
+        locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        defaultCriteria = new Criteria();
+        providerName = locationManager.getBestProvider(defaultCriteria, false);
 
         //Get instance of class that manages the database
         dbManager = new DBManager(getBaseContext());
@@ -144,13 +154,37 @@ public class MainActivity extends ActionBarActivity {
         messageList.setAdapter(messageAdapter);
     }//End init()
 
+    private void startScanning(){
+        displayStatus("Scanning");
+        BTAdapter.startLeScan(scanCallback);
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                displayStatus("Stop Scanning");
+                BTAdapter.stopLeScan(scanCallback);
+
+                Handler secondHanlder = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        startScanning();
+                    }
+                }, 5000);
+
+            }
+        }, 2000);
+    }
+
     //On resume, scan and connect back to the arduino
     @Override
     protected void onResume() {
         super.onResume();
 
-        displayStatus("Scanning");
-        BTAdapter.startLeScan(scanCallback);
+
+        startScanning();
+        //BTAdapter.startLeScan(scanCallback);
     }
 
     //When program is terminated, disconnect everything related to bluetooth
@@ -195,6 +229,7 @@ public class MainActivity extends ActionBarActivity {
             else if(newState == BluetoothGatt.STATE_DISCONNECTED)
             {
                 displayStatus("Disconnected");
+                startScanning();
             }
             else
             {
@@ -292,7 +327,8 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onClick(View view) {
-            BTAdapter.startLeScan(scanCallback);
+            startScanning();
+            //BTAdapter.startLeScan(scanCallback);
         }
     }
 
@@ -361,10 +397,11 @@ public class MainActivity extends ActionBarActivity {
         df = new SimpleDateFormat("dd/MM/yyyy");
         String date = df.format((Calendar.getInstance().getTime()));
 
-        LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        Criteria defaultCriteria = new Criteria();
-        String providerName = locationManager.getBestProvider(defaultCriteria, false);
+        //Start checking for location updates
+        locationManager.requestLocationUpdates(providerName, 5000, 5, new customLocationListener());
         Location currentLocation = locationManager.getLastKnownLocation(providerName);
+        locationManager.removeUpdates(new customLocationListener());
+
 
         String lat = String.valueOf(currentLocation.getLatitude());
         String lng = String.valueOf(currentLocation.getLongitude());
@@ -372,6 +409,30 @@ public class MainActivity extends ActionBarActivity {
         Incident newIncident = new Incident(distance, time, date, lat, lng);
 
         return newIncident;
+    }
+
+    //Custom class for handling gps change
+    public class customLocationListener implements LocationListener {
+
+        @Override
+        public void onLocationChanged(Location location) {
+
+        }
+
+        @Override
+        public void onStatusChanged(String s, int i, Bundle bundle) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String s) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String s) {
+
+        }
     }
 
     private List<UUID> parseUUIDs(final byte[] advertisedData) {
