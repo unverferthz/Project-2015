@@ -11,7 +11,6 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -32,9 +31,6 @@ import android.widget.ListView;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import android.widget.Toast;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.nio.charset.Charset;
 import java.text.DateFormat;
@@ -63,6 +59,9 @@ public class MainActivity extends ActionBarActivity {
     LocationManager locationManager;
     Criteria defaultCriteria;
     String providerName;
+
+    boolean isScanning;
+    boolean isConnected;
 
     Button btnConnect;
     Button btnSend;
@@ -113,6 +112,9 @@ public class MainActivity extends ActionBarActivity {
         defaultCriteria = new Criteria();
         providerName = locationManager.getBestProvider(defaultCriteria, false);
 
+        isScanning = false;
+        isConnected = false;
+
         //Get instance of class that manages the database
         dbManager = new DBManager(getBaseContext());
 
@@ -154,27 +156,34 @@ public class MainActivity extends ActionBarActivity {
         messageList.setAdapter(messageAdapter);
     }//End init()
 
-    private void startScanning(){
-        displayStatus("Scanning");
-        BTAdapter.startLeScan(scanCallback);
+    private void tryToScanForBTDevices(){
+        if(!isScanning && !isConnected) {
+            messageAdapter.clear();
+            isScanning = true;
+            displayStatus("Scanning");
+            BTAdapter.startLeScan(scanCallback);
 
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                displayStatus("Stop Scanning");
-                BTAdapter.stopLeScan(scanCallback);
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if(isScanning)
+                    {
+                        isScanning = false;
+                        displayStatus("Stop Scanning");
+                        BTAdapter.stopLeScan(scanCallback);
 
-                Handler secondHanlder = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        startScanning();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                tryToScanForBTDevices();
+                            }
+                        }, 5000);
                     }
-                }, 5000);
 
-            }
-        }, 2000);
+                }
+            }, 3000);
+        }
     }
 
     //On resume, scan and connect back to the arduino
@@ -182,8 +191,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
 
-
-        startScanning();
+        tryToScanForBTDevices();
         //BTAdapter.startLeScan(scanCallback);
     }
 
@@ -191,8 +199,6 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onStop() {
         super.onStop();
-
-
     }
 
     @Override
@@ -218,6 +224,7 @@ public class MainActivity extends ActionBarActivity {
             {
                 //Display message to user
                 displayStatus("Connected!");
+                isConnected = true;
 
                 //Try discover bluetooth devices services
                 if(!gatt.discoverServices())
@@ -228,8 +235,12 @@ public class MainActivity extends ActionBarActivity {
             //Check if disconnected
             else if(newState == BluetoothGatt.STATE_DISCONNECTED)
             {
+                displayStatus("Stopped Scanning");
+                isScanning = false;
+                BTAdapter.stopLeScan(scanCallback);
                 displayStatus("Disconnected");
-                startScanning();
+                isConnected = false;
+                tryToScanForBTDevices();
             }
             else
             {
@@ -295,16 +306,18 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onLeScan(BluetoothDevice bluetoothDevice, int i, byte[] bytes) {
-            String name = bluetoothDevice.getName();
-            String address = bluetoothDevice.getAddress();
+            //String name = bluetoothDevice.getName();
+            //String address = bluetoothDevice.getAddress();
 
-            displayStatus("Found device: " + name + ", " + address);
+            //displayStatus("Found device: " + name + ", " + address);
 
             if(parseUUIDs(bytes).contains(UART_UUID)){
                 //Found UART device, stop scan
+                isScanning = false;
+                displayStatus("Scanning stopped");
                 BTAdapter.stopLeScan(scanCallback);
 
-                displayStatus("Found UART device");
+                //displayStatus("Found UART device");
 
                 connectedGatt = bluetoothDevice.connectGatt(getApplicationContext(), false, mGattCallback);
             }
@@ -327,7 +340,7 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onClick(View view) {
-            startScanning();
+            tryToScanForBTDevices();
             //BTAdapter.startLeScan(scanCallback);
         }
     }
@@ -336,13 +349,6 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onClick(View view) {
-            Incident i1 = new Incident(42, "12:48pm", "12/11/2015", "24.2314466", "-45.2134463");
-            Incident i2 = new Incident(57, "12:50pm", "22/03/2015", "36.2134315", "-45.5432135");
-
-            dbManager.insertIncident(i1);
-            dbManager.insertIncident(i2);
-
-
             Intent newIntent = new Intent(getBaseContext(), ViewIncidents.class);
             startActivity(newIntent);
         }
