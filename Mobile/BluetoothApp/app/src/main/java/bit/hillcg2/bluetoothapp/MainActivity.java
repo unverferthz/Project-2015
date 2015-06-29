@@ -184,6 +184,14 @@ public class MainActivity extends ActionBarActivity {
                 }
             }, 3000);
         }
+        else
+        {
+            if(isScanning)
+                Toast.makeText(getBaseContext(), "Already scanning", Toast.LENGTH_LONG).show();
+
+            if(isConnected)
+                Toast.makeText(getBaseContext(), "Already connected", Toast.LENGTH_LONG).show();
+        }
     }
 
     //On resume, scan and connect back to the arduino
@@ -205,6 +213,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
 
+        locationManager.removeUpdates(new customLocationListener());
         connectedGatt.disconnect();
         connectedGatt.close();
         connectedGatt = null;
@@ -222,6 +231,9 @@ public class MainActivity extends ActionBarActivity {
             //Check if bluetooth was connected
             if(newState == BluetoothGatt.STATE_CONNECTED)
             {
+                //Start listening for GPS location change
+                locationManager.requestLocationUpdates(providerName, 5000, 5, new customLocationListener());
+
                 //Display message to user
                 displayStatus("Connected!");
                 isConnected = true;
@@ -235,6 +247,7 @@ public class MainActivity extends ActionBarActivity {
             //Check if disconnected
             else if(newState == BluetoothGatt.STATE_DISCONNECTED)
             {
+                locationManager.removeUpdates(new customLocationListener());
                 displayStatus("Stopped Scanning");
                 isScanning = false;
                 BTAdapter.stopLeScan(scanCallback);
@@ -349,6 +362,7 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onClick(View view) {
+            locationManager.removeUpdates(new customLocationListener());
             Intent newIntent = new Intent(getBaseContext(), ViewIncidents.class);
             startActivity(newIntent);
         }
@@ -404,13 +418,20 @@ public class MainActivity extends ActionBarActivity {
         String date = df.format((Calendar.getInstance().getTime()));
 
         //Start checking for location updates
-        locationManager.requestLocationUpdates(providerName, 5000, 5, new customLocationListener());
         Location currentLocation = locationManager.getLastKnownLocation(providerName);
-        locationManager.removeUpdates(new customLocationListener());
+        String lat = "";
+        String lng = "";
 
-
-        String lat = String.valueOf(currentLocation.getLatitude());
-        String lng = String.valueOf(currentLocation.getLongitude());
+        if(currentLocation != null)
+        {
+            lat = String.valueOf(currentLocation.getLatitude());
+            lng = String.valueOf(currentLocation.getLongitude());
+        }
+        else
+        {
+            lat = "null";
+            lng = "null";
+        }
 
         Incident newIncident = new Incident(distance, time, date, lat, lng);
 
