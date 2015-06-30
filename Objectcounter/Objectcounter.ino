@@ -59,9 +59,6 @@ void bluetoothCheck(){
     if (status == ACI_EVT_DISCONNECTED) {
       {
         Serial.println(F("* Disconnected or advertising timed out"));
-        //Start advertising again?
-        BTLEserial.setDeviceName("Ardu"); /* 7 characters max! */
-        BTLEserial.begin();
       }
     }
     //Keep track of what the status changed to, incase it changes again
