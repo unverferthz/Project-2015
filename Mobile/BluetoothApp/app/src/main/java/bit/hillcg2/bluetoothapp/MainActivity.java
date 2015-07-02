@@ -32,6 +32,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import android.widget.Toast;
 
+import org.apache.commons.net.io.ToNetASCIIInputStream;
+
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -62,6 +64,9 @@ public class MainActivity extends ActionBarActivity {
 
     boolean isScanning;
     boolean isConnected;
+    boolean locationUpdating;
+
+    customLocationListener customListener;
 
     Button btnConnect;
     Button btnSend;
@@ -114,6 +119,9 @@ public class MainActivity extends ActionBarActivity {
 
         isScanning = false;
         isConnected = false;
+        locationUpdating = false;
+
+        customListener = new customLocationListener();
 
         //Get instance of class that manages the database
         dbManager = new DBManager(getBaseContext());
@@ -157,7 +165,8 @@ public class MainActivity extends ActionBarActivity {
     }//End init()
 
     private void tryToScanForBTDevices(){
-        if(!isScanning && !isConnected) {
+        if(!isScanning && !isConnected)
+        {
             messageAdapter.clear();
             isScanning = true;
             displayStatus("Scanning");
@@ -213,7 +222,9 @@ public class MainActivity extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        locationManager.removeUpdates(new customLocationListener());
+        locationManager.removeUpdates(customListener);
+        locationUpdating = false;
+
         connectedGatt.disconnect();
         connectedGatt.close();
         connectedGatt = null;
@@ -231,8 +242,14 @@ public class MainActivity extends ActionBarActivity {
             //Check if bluetooth was connected
             if(newState == BluetoothGatt.STATE_CONNECTED)
             {
-                //Start listening for GPS location change
-                locationManager.requestLocationUpdates(providerName, 5000, 5, new customLocationListener());
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Start listening for GPS location change
+                        locationManager.requestLocationUpdates(providerName, 5000, 5, customListener);
+                        locationUpdating = true;
+                    }
+                });
 
                 //Display message to user
                 displayStatus("Connected!");
@@ -247,13 +264,20 @@ public class MainActivity extends ActionBarActivity {
             //Check if disconnected
             else if(newState == BluetoothGatt.STATE_DISCONNECTED)
             {
-                locationManager.removeUpdates(new customLocationListener());
-                displayStatus("Stopped Scanning");
-                isScanning = false;
-                BTAdapter.stopLeScan(scanCallback);
-                displayStatus("Disconnected");
-                isConnected = false;
-                tryToScanForBTDevices();
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        locationManager.removeUpdates(customListener);
+                        locationUpdating = false;
+
+                        displayStatus("Stopped Scanning");
+                        isScanning = false;
+                        BTAdapter.stopLeScan(scanCallback);
+                        displayStatus("Disconnected");
+                        isConnected = false;
+                        tryToScanForBTDevices();
+                    }
+                });
             }
             else
             {
@@ -319,10 +343,10 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onLeScan(BluetoothDevice bluetoothDevice, int i, byte[] bytes) {
-            //String name = bluetoothDevice.getName();
-            //String address = bluetoothDevice.getAddress();
+            String name = bluetoothDevice.getName();
+            String address = bluetoothDevice.getAddress();
 
-            //displayStatus("Found device: " + name + ", " + address);
+            displayStatus("Found device: " + name + ", " + address);
 
             if(parseUUIDs(bytes).contains(UART_UUID)){
                 //Found UART device, stop scan
@@ -362,7 +386,7 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onClick(View view) {
-            locationManager.removeUpdates(new customLocationListener());
+            locationManager.removeUpdates(customListener);
             Intent newIntent = new Intent(getBaseContext(), ViewIncidents.class);
             startActivity(newIntent);
         }
