@@ -3,14 +3,14 @@ package bit.hillcg2.bluetoothapp;
 
 public class Incident {
 
-    int distance;
-    String time;
-    String date;
-    String lat;
-    String lng;
+    private int distance;
+    private String time;
+    private String date;
+    private String lat;
+    private String lng;
 
-    public Incident(int statDistance, String startTime, String startDate, String startLat, String startLng){
-        distance = statDistance;
+    public Incident(int startDistance, String startTime, String startDate, String startLat, String startLng){
+        distance = startDistance;
         time = startTime;
         date = startDate;
         lat = startLat;

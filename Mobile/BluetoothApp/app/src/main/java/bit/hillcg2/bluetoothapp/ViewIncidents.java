@@ -53,7 +53,7 @@ public class ViewIncidents extends ActionBarActivity {
     public void populateList(){
 
         //Ask database for all of the incidents
-        ArrayList<Incident> incidentArray = dbManager.getIncidents();
+        ArrayList<Incident> incidentArray = dbManager.getAllIncidents();
 
         int counter = 0;
 
@@ -76,7 +76,7 @@ public class ViewIncidents extends ActionBarActivity {
         }
     }
 
-    //Button hanlder to go back to main screen
+    //Button handler to go back to main screen
     public class goBack implements OnClickListener{
         @Override
         public void onClick(View view) {
@@ -86,7 +86,7 @@ public class ViewIncidents extends ActionBarActivity {
         }
     }
 
-    //Button hanlder to reset the database
+    //Button handler to reset the database
     public class resetDB implements OnClickListener{
         @Override
         public void onClick(View view) {

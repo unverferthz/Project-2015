@@ -23,10 +23,10 @@ import java.util.Calendar;
 
 public class FTPManager {
     //FTPClient mFTP;
-    JSch jsch;
-    AssetManager am;
-    DBManager dbManager;
-    Context context;
+    private JSch jsch;
+    private AssetManager am;
+    private DBManager dbManager;
+    private Context context;
 
     public FTPManager(Context startContext, DBManager startDBManager){
         context = startContext;
@@ -40,7 +40,7 @@ public class FTPManager {
     }
 
     private File createFileToSend(){
-        ArrayList<Incident> allIncidents = dbManager.getIncidents();
+        ArrayList<Incident> allIncidents = dbManager.getNewIncidents();
 
         File outputFile = null;
 

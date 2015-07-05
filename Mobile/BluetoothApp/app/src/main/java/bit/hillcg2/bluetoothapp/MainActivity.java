@@ -378,7 +378,6 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onClick(View view) {
             tryToScanForBTDevices();
-            //BTAdapter.startLeScan(scanCallback);
         }
     }
 
@@ -387,6 +386,7 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onClick(View view) {
             locationManager.removeUpdates(customListener);
+
             Intent newIntent = new Intent(getBaseContext(), ViewIncidents.class);
             startActivity(newIntent);
         }
