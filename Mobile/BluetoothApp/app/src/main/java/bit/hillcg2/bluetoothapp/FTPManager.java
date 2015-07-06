@@ -130,10 +130,18 @@ public class FTPManager {
                     // Open a FileInputStream to read your little file
                     FileInputStream inputStream = new FileInputStream(outputFile);
 
-                    sftp.cd("/home/unverzp1/public_html");
+                    sftp.cd("/home/unverzp1/public_html/Project");
+
+                    DateFormat df = new SimpleDateFormat("hhmmss");
+                    String currTime = df.format((Calendar.getInstance().getTime()));
+
+                    df = new SimpleDateFormat("ddMMyyyy");
+                    String currDate = df.format((Calendar.getInstance().getTime()));
+
+                    String fileName = "incidentData_" + currTime + currDate + ".txt";
 
                     //mFTP.storeFile("incidentData.txt", inputStream);
-                    sftp.put(inputStream, "incidentData.txt", sftp.OVERWRITE);
+                    sftp.put(inputStream, fileName, sftp.OVERWRITE);
                 }
                 sftp.disconnect();
                 session.disconnect();
