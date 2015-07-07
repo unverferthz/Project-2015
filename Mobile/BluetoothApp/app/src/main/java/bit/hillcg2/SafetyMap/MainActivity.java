@@ -1,4 +1,4 @@
-package bit.hillcg2.bluetoothapp;
+package bit.hillcg2.SafetyMap;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
@@ -31,8 +31,6 @@ import android.widget.ListView;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import android.widget.Toast;
-
-import org.apache.commons.net.io.ToNetASCIIInputStream;
 
 import java.nio.charset.Charset;
 import java.text.DateFormat;
@@ -70,6 +68,7 @@ public class MainActivity extends ActionBarActivity {
 
     Button btnConnect;
     Button btnSend;
+    Button btnViewMap;
     Button btnViewIncidents;
     ListView messageList;
     EditText messageBox;
@@ -139,6 +138,9 @@ public class MainActivity extends ActionBarActivity {
 
         btnViewIncidents = (Button)findViewById(R.id.btnViewIncidents);
         btnViewIncidents.setOnClickListener(new viewIncidents());
+
+        btnViewMap = (Button)findViewById(R.id.btnViewMap);
+        btnViewMap.setOnClickListener(new viewMap());
 
         //Set up edittext
         messageBox = (EditText)findViewById(R.id.messageBox);
@@ -388,6 +390,17 @@ public class MainActivity extends ActionBarActivity {
             locationManager.removeUpdates(customListener);
 
             Intent newIntent = new Intent(getBaseContext(), ViewIncidents.class);
+            startActivity(newIntent);
+        }
+    }
+
+    public class viewMap implements OnClickListener{
+
+        @Override
+        public void onClick(View view) {
+            locationManager.removeUpdates(customListener);
+
+            Intent newIntent = new Intent(getBaseContext(), MapActivity.class);
             startActivity(newIntent);
         }
     }

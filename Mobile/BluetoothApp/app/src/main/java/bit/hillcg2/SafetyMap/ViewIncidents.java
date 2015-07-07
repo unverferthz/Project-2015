@@ -1,4 +1,4 @@
-package bit.hillcg2.bluetoothapp;
+package bit.hillcg2.SafetyMap;
 
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;

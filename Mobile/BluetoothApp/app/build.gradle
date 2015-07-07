@@ -5,7 +5,7 @@ android {
     buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "bit.hillcg2.bluetoothapp"
+        applicationId "bit.hillcg2.SafetyMap"
         minSdkVersion 16
         targetSdkVersion 22
         versionCode 1
@@ -24,4 +24,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.1.1'
     compile files('libs/commons-net-3.3.jar')
     compile files('libs/jsch-0.1.53.jar')
+
+    compile 'com.google.android.gms:play-services:7.3.0'
+    compile 'com.google.maps.android:android-maps-utils:0.3+'
 }

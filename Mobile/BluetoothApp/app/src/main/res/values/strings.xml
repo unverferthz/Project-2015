@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BluetoothApp</string>
+    <string name="app_name">Safety Map</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
@@ -10,4 +10,6 @@
     <string name="btn_view_incidents">View Incidents</string>
     <string name="reset_db">Reset Database</string>
     <string name="send_data">Send Data</string>
+    <string name="view_map">View Map</string>
+    <string name="title_activity_map">MapActivity</string>
 </resources>

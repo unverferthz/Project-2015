@@ -1,4 +1,4 @@
-package bit.hillcg2.bluetoothapp;
+package bit.hillcg2.SafetyMap;
 
 
 public class Incident {

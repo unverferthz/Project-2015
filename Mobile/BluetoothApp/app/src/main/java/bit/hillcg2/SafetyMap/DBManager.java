@@ -1,7 +1,6 @@
-package bit.hillcg2.bluetoothapp;
+package bit.hillcg2.SafetyMap;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import java.util.ArrayList;
