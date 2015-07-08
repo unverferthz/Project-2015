@@ -27,11 +27,13 @@ public class FTPManager {
     private AssetManager am;
     private DBManager dbManager;
     private Context context;
+    private ViewIncidents incidentActivity;
 
-    public FTPManager(Context startContext, DBManager startDBManager){
+    public FTPManager(Context startContext, DBManager startDBManager, ViewIncidents startIncidentActivity){
         context = startContext;
         am = context.getAssets();
         dbManager = startDBManager;
+        incidentActivity = startIncidentActivity;
     }
 
     public void sendFile(){
@@ -44,68 +46,87 @@ public class FTPManager {
 
         File outputFile = null;
 
-        try {
-            DateFormat df = new SimpleDateFormat("hhmmss");
-            String currTime = df.format((Calendar.getInstance().getTime()));
-
-            df = new SimpleDateFormat("ddMMyyyy");
-            String currDate = df.format((Calendar.getInstance().getTime()));
-
-            String fileName = "incidentData_" + currTime + currDate + ".txt";
-            FileOutputStream outputStream;
-            outputStream = context.openFileOutput(fileName, context.MODE_PRIVATE);
-            outputFile = new File(context.getFilesDir(), fileName);
-
-            int count = 0;
-
-            for (Incident i : allIncidents) {
-                String incidentString = "";
-
-                if(count != 0)
-                    incidentString += ",{";
-                else
-                    incidentString += "{";
-
-                String distance = String.valueOf(i.getDistance());
-                incidentString += "distance:" + distance + ",";
-
-                String time = i.getTime();
-                incidentString += "time:" + time + ",";
-
-                String date = i.getDate();
-                incidentString += "date:" + date + ",";
-
-                String lat = i.getLat();
-                incidentString += "latitude:" + lat + ",";
-
-                String lng = i.getLng();
-                incidentString += "longitude:" + lng + "}";
-
-                outputStream.write(incidentString.getBytes());
-                count++;
-            }
-        }
-        catch(IOException e)
+        //Make a JSON formatted text file if there any any incidents
+        if(allIncidents.size() > 0)
         {
-            e.printStackTrace();
+            try
+            {
+                DateFormat df = new SimpleDateFormat("hhmmss");
+                String currTime = df.format((Calendar.getInstance().getTime()));
+
+                df = new SimpleDateFormat("ddMMyyyy");
+                String currDate = df.format((Calendar.getInstance().getTime()));
+
+                String fileName = "incidentData_" + currTime + currDate + ".txt";
+                FileOutputStream outputStream;
+                outputStream = context.openFileOutput(fileName, context.MODE_PRIVATE);
+                outputFile = new File(context.getFilesDir(), fileName);
+
+                int count = 0;
+
+                for (Incident i : allIncidents)
+                {
+                    String incidentString = "";
+
+                    if (count != 0)
+                        incidentString += ",{";
+                    else
+                        incidentString += "{";
+
+                    String distance = String.valueOf(i.getDistance());
+                    incidentString += "distance:" + distance + ",";
+
+                    String time = i.getTime();
+                    incidentString += "time:" + time + ",";
+
+                    String date = i.getDate();
+                    incidentString += "date:" + date + ",";
+
+                    String lat = i.getLat();
+                    incidentString += "latitude:" + lat + ",";
+
+                    String lng = i.getLng();
+                    incidentString += "longitude:" + lng + "}";
+
+                    outputStream.write(incidentString.getBytes());
+                    count++;
+                }
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
 
         return outputFile;
     }
 
-    public class AsyncSendFile extends AsyncTask<Void,Void,Void>
+    public class AsyncSendFile extends AsyncTask<Void,Void,Boolean>
     {
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
 
-            String user = "unverzp1";
-            String password = "11000712";
+            incidentActivity.finishedUpload(aBoolean);
 
-            //mFTP = new FTPClient();
-            jsch = new JSch();
+        }
 
-            try
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            File outputFile = createFileToSend();
+
+            boolean success = false;
+
+            if(outputFile != null)
             {
+                String user = "unverzp1";
+                String password = "11000712";
+
+                //mFTP = new FTPClient();
+                jsch = new JSch();
+
+                try
+                {
                 /*mFTP.connect("kate.ict.op.ac.nz", 46815);
 
                 mFTP.login(user, password);
@@ -113,20 +134,15 @@ public class FTPManager {
                 mFTP.setFileType(FTP.ASCII_FILE_TYPE);
                 mFTP.enterLocalPassiveMode();*/
 
-                Session session = jsch.getSession(user, "kate.ict.op.ac.nz", 46815);
-                session.setConfig("PreferredAuthentications", "password");
-                session.setConfig("StrictHostKeyChecking", "no");
-                session.setPassword(password);
-                session.connect();
-                Channel channel = session.openChannel("sftp");
-                ChannelSftp sftp = (ChannelSftp)channel;
-                sftp.connect();
+                    Session session = jsch.getSession(user, "kate.ict.op.ac.nz", 46815);
+                    session.setConfig("PreferredAuthentications", "password");
+                    session.setConfig("StrictHostKeyChecking", "no");
+                    session.setPassword(password);
+                    session.connect();
+                    Channel channel = session.openChannel("sftp");
+                    ChannelSftp sftp = (ChannelSftp) channel;
+                    sftp.connect();
 
-
-                File outputFile = createFileToSend();
-
-                if(outputFile != null)
-                {
                     // Open a FileInputStream to read your little file
                     FileInputStream inputStream = new FileInputStream(outputFile);
 
@@ -142,21 +158,28 @@ public class FTPManager {
 
                     //mFTP.storeFile("incidentData.txt", inputStream);
                     sftp.put(inputStream, fileName, sftp.OVERWRITE);
+
+                    sftp.disconnect();
+                    session.disconnect();
+                    success = true;
+
+                    //mFTP.disconnect();
                 }
-                sftp.disconnect();
-                session.disconnect();
-                //mFTP.disconnect();
-            }
-            catch(IOException e)
-            {
-                e.printStackTrace();
-            } catch (JSchException e) {
-                e.printStackTrace();
-            } catch (SftpException e) {
-                e.printStackTrace();
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+                catch (JSchException e)
+                {
+                    e.printStackTrace();
+                }
+                catch (SftpException e)
+                {
+                    e.printStackTrace();
+                }
             }
 
-            return null;
+            return success;
         }
     }
 }

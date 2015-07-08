@@ -19,20 +19,15 @@ import android.os.Build;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.bluetooth.BluetoothAdapter.LeScanCallback;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import android.widget.Toast;
-
-import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -67,11 +62,11 @@ public class MainActivity extends ActionBarActivity {
     customLocationListener customListener;
 
     Button btnConnect;
-    Button btnSend;
+    //Button btnSend;
     Button btnViewMap;
     Button btnViewIncidents;
     ListView messageList;
-    EditText messageBox;
+    //EditText messageBox;
     ArrayAdapter<String> messageAdapter;
 
     DBManager dbManager;
@@ -132,9 +127,9 @@ public class MainActivity extends ActionBarActivity {
         btnConnect = (Button)findViewById(R.id.btnConnect);
         btnConnect.setOnClickListener(new connectDevice());
 
-        btnSend = (Button)findViewById(R.id.btnSend);
+        /*btnSend = (Button)findViewById(R.id.btnSend);
         btnSend.setOnClickListener(new sendMessage());
-        btnSend.setEnabled(false);
+        btnSend.setEnabled(false);*/
 
         btnViewIncidents = (Button)findViewById(R.id.btnViewIncidents);
         btnViewIncidents.setOnClickListener(new viewIncidents());
@@ -143,7 +138,7 @@ public class MainActivity extends ActionBarActivity {
         btnViewMap.setOnClickListener(new viewMap());
 
         //Set up edittext
-        messageBox = (EditText)findViewById(R.id.messageBox);
+        /*messageBox = (EditText)findViewById(R.id.messageBox);
         messageBox.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -159,7 +154,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void afterTextChanged(Editable editable) {
             }
-        });
+        });*/
 
         //Set up listview
         messageList = (ListView)findViewById(R.id.messageList);
@@ -224,12 +219,20 @@ public class MainActivity extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
 
+        finishForActivityChange();
+    }
+
+    public void finishForActivityChange(){
         locationManager.removeUpdates(customListener);
         locationUpdating = false;
 
-        connectedGatt.disconnect();
-        connectedGatt.close();
-        connectedGatt = null;
+        if(connectedGatt != null)
+        {
+            connectedGatt.disconnect();
+            connectedGatt.close();
+            connectedGatt = null;
+        }
+
         RXChar = null;
         TXChar = null;
     }
@@ -260,7 +263,7 @@ public class MainActivity extends ActionBarActivity {
                 //Try discover bluetooth devices services
                 if(!gatt.discoverServices())
                 {
-                    displayStatus("Failed to start discovering services");
+                    //displayStatus("Failed to start discovering services");
                 }
             }
             //Check if disconnected
@@ -293,11 +296,11 @@ public class MainActivity extends ActionBarActivity {
             super.onServicesDiscovered(gatt, status);
             if(status == BluetoothGatt.GATT_SUCCESS)
             {
-                displayStatus("Service discovery completed");
+                //displayStatus("Service discovery completed");
             }
             else
             {
-                displayStatus("Service disovery failed. Status: " + status);
+                //displayStatus("Service discovery failed. Status: " + status);
             }
 
             TXChar = gatt.getService(UART_UUID).getCharacteristic(TX_UUID);
@@ -315,19 +318,19 @@ public class MainActivity extends ActionBarActivity {
 
                 if(!connectedGatt.writeDescriptor(descriptor))
                 {
-                    displayStatus("Couldn't write descriptor");
+                    //displayStatus("Couldn't write descriptor");
                 }
             }
             else
             {
-                displayStatus("Couldn't get descriptor");
+                //displayStatus("Couldn't get descriptor");
             }
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
-            displayStatus("Received: " + characteristic.getStringValue(0));
+            displayStatus("Distance of object: " + characteristic.getStringValue(0) + "cm");
 
             try
             {
@@ -336,7 +339,7 @@ public class MainActivity extends ActionBarActivity {
             }
             catch(Exception e)
             {
-                Toast.makeText(getBaseContext(), "Didn't get distance", Toast.LENGTH_LONG).show();
+                Toast.makeText(getBaseContext(), "Error creating incident", Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -346,14 +349,15 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onLeScan(BluetoothDevice bluetoothDevice, int i, byte[] bytes) {
             String name = bluetoothDevice.getName();
-            String address = bluetoothDevice.getAddress();
+            //String address = bluetoothDevice.getAddress();
 
-            displayStatus("Found device: " + name + ", " + address);
+            //displayStatus("Found device: " + name + ", " + address);
 
             if(parseUUIDs(bytes).contains(UART_UUID)){
                 //Found UART device, stop scan
-                isScanning = false;
                 displayStatus("Scanning stopped");
+                displayStatus("Connecting to " + name);
+                isScanning = false;
                 BTAdapter.stopLeScan(scanCallback);
 
                 //displayStatus("Found UART device");
@@ -387,7 +391,7 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onClick(View view) {
-            locationManager.removeUpdates(customListener);
+            finishForActivityChange();
 
             Intent newIntent = new Intent(getBaseContext(), ViewIncidents.class);
             startActivity(newIntent);
@@ -398,14 +402,14 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onClick(View view) {
-            locationManager.removeUpdates(customListener);
+            finishForActivityChange();
 
             Intent newIntent = new Intent(getBaseContext(), MapActivity.class);
             startActivity(newIntent);
         }
     }
 
-    public class sendMessage implements OnClickListener{
+    /*public class sendMessage implements OnClickListener{
 
         @Override
         public void onClick(View view) {
@@ -429,7 +433,7 @@ public class MainActivity extends ActionBarActivity {
                 Toast.makeText(getBaseContext(), "Couldn't send", Toast.LENGTH_LONG).show();
             }
         }
-    }
+    }*/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

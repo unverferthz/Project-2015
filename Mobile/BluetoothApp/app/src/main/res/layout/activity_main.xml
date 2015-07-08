@@ -28,26 +28,8 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/messageBox"
-            android:layout_weight="1"
-            android:imeOptions="actionDone" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/send"
-            android:id="@+id/btnSend" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:paddingTop="20dp">
 
         <Button
             android:layout_width="wrap_content"
@@ -59,7 +41,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/view_map"
-            android:id="@+id/btnViewMap" />
+            android:id="@+id/btnViewMap"
+            android:layout_marginLeft="70dp"/>
     </LinearLayout>
 
 </LinearLayout>

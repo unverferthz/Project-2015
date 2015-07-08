@@ -8,6 +8,7 @@ import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 public class ViewIncidents extends ActionBarActivity {
     ArrayAdapter<String> listAdapter;
     DBManager dbManager;
+    Button btnSendData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +36,7 @@ public class ViewIncidents extends ActionBarActivity {
         Button btnReset = (Button)findViewById(R.id.btnReset);
         btnReset.setOnClickListener(new resetDB());
 
-        Button btnSendData = (Button)findViewById(R.id.btnSendData);
+        btnSendData = (Button)findViewById(R.id.btnSendData);
         btnSendData.setOnClickListener(new sendData());
 
         //Set up listview
@@ -100,10 +102,20 @@ public class ViewIncidents extends ActionBarActivity {
 
         @Override
         public void onClick(View view) {
+            btnSendData.setEnabled(false);
             DBManager dbManager = new DBManager(getBaseContext());
-            FTPManager ftpManager = new FTPManager(getBaseContext(), dbManager);
+            FTPManager ftpManager = new FTPManager(getBaseContext(), dbManager, ViewIncidents.this);
 
             ftpManager.sendFile();
         }
+    }
+
+    public void finishedUpload(boolean success){
+        btnSendData.setEnabled(true);
+
+        if(success)
+            Toast.makeText(getBaseContext(), "Uploaded data", Toast.LENGTH_LONG).show();
+        else
+            Toast.makeText(getBaseContext(), "No new data", Toast.LENGTH_LONG).show();
     }
 }

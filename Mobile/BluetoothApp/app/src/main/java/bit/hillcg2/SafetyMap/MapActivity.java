@@ -87,7 +87,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 
             map.addMarker(new MarkerOptions()
                     .position(incidentPos)
-                    .title("Distance of vehicle: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
+                    .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
         }
     }
 
