@@ -83,11 +83,14 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
             String date = i.getDate();
             int distance = i.getDistance();
 
-            LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
+            if(!lat.equals("null") && !lng.equals("null"))
+            {
+                LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
 
-            map.addMarker(new MarkerOptions()
-                    .position(incidentPos)
-                    .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
+                map.addMarker(new MarkerOptions()
+                        .position(incidentPos)
+                        .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
+            }
         }
     }
 

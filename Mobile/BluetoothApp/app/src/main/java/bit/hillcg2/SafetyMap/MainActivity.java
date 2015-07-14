@@ -60,6 +60,7 @@ public class MainActivity extends ActionBarActivity {
     boolean locationUpdating;
 
     customLocationListener customListener;
+    Location currLocation;
 
     Button btnConnect;
     //Button btnSend;
@@ -110,12 +111,15 @@ public class MainActivity extends ActionBarActivity {
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         defaultCriteria = new Criteria();
         providerName = locationManager.getBestProvider(defaultCriteria, false);
+        customListener = new customLocationListener();
+        currLocation = null;
 
         isScanning = false;
         isConnected = false;
         locationUpdating = false;
 
         customListener = new customLocationListener();
+        currLocation = null;
 
         //Get instance of class that manages the database
         dbManager = new DBManager(getBaseContext());
@@ -223,8 +227,11 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void finishForActivityChange(){
-        locationManager.removeUpdates(customListener);
-        locationUpdating = false;
+        if(locationUpdating)
+        {
+            locationManager.removeUpdates(customListener);
+            locationUpdating = false;
+        }
 
         if(connectedGatt != null)
         {
@@ -272,8 +279,11 @@ public class MainActivity extends ActionBarActivity {
                 MainActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        locationManager.removeUpdates(customListener);
-                        locationUpdating = false;
+                        if(locationUpdating)
+                        {
+                            locationManager.removeUpdates(customListener);
+                            locationUpdating = false;
+                        }
 
                         displayStatus("Stopped Scanning");
                         isScanning = false;
@@ -459,7 +469,7 @@ public class MainActivity extends ActionBarActivity {
         String date = df.format((Calendar.getInstance().getTime()));
 
         //Start checking for location updates
-        Location currentLocation = locationManager.getLastKnownLocation(providerName);
+        Location currentLocation = currLocation;
         String lat = "";
         String lng = "";
 
@@ -484,7 +494,8 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onLocationChanged(Location location) {
-
+            currLocation = location;
+            Toast.makeText(getBaseContext(), "Location updated", Toast.LENGTH_LONG).show();
         }
 
         @Override
