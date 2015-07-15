@@ -38,11 +38,13 @@
         </activity>
         <activity
             android:name=".ViewIncidents"
-            android:label="@string/title_activity_view_incidents" >
+            android:label="@string/title_activity_view_incidents"
+            android:screenOrientation="portrait">
         </activity>
         <activity
             android:name=".MapActivity"
-            android:label="@string/title_activity_map" >
+            android:label="@string/title_activity_map"
+            android:screenOrientation="portrait">
         </activity>
     </application>
 
