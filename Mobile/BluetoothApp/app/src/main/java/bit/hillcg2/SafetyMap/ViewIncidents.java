@@ -29,7 +29,7 @@ public class ViewIncidents extends ActionBarActivity {
     //Initialize everything
     public void init(){
 
-        //Set up buttons
+        //Get instances of views from layout and set them up
         Button btnBack = (Button)findViewById(R.id.btnBack);
         btnBack.setOnClickListener(new goBack());
 
@@ -39,7 +39,6 @@ public class ViewIncidents extends ActionBarActivity {
         btnSendData = (Button)findViewById(R.id.btnSendData);
         btnSendData.setOnClickListener(new sendData());
 
-        //Set up listview
         listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         ListView incidentList = (ListView)findViewById(R.id.incidentList);
         incidentList.setAdapter(listAdapter);
@@ -98,11 +97,14 @@ public class ViewIncidents extends ActionBarActivity {
         }
     }
 
+    //Handler to start sending file up to the server
     public class sendData implements OnClickListener{
 
         @Override
         public void onClick(View view) {
+            //Disable button so it can't be spammed
             btnSendData.setEnabled(false);
+
             DBManager dbManager = new DBManager(getBaseContext());
             FTPManager ftpManager = new FTPManager(getBaseContext(), dbManager, ViewIncidents.this);
 
@@ -110,6 +112,7 @@ public class ViewIncidents extends ActionBarActivity {
         }
     }
 
+    //Informs user if the upload was successful
     public void finishedUpload(boolean success){
         btnSendData.setEnabled(true);
 

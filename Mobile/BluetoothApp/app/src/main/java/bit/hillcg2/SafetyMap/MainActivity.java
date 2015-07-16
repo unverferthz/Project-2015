@@ -34,43 +34,50 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
+import android.os.Vibrator;
 
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class MainActivity extends ActionBarActivity {
 
-    /***Global variables****/
+    //TODO clean up this class
 
+    /***Global variables****/
     public static UUID UART_UUID = UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
     public static UUID TX_UUID = UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
     public static UUID RX_UUID = UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E");
     public static final UUID CLIENT_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
+    public static final int SCAN_PERIOD = 5000;
+    public static final int SCAN_DELAY = 5000;
 
     private BluetoothGatt connectedGatt;
     private BluetoothAdapter BTAdapter;
     private BluetoothGattCharacteristic RXChar;
     private BluetoothGattCharacteristic TXChar;
 
-    LocationManager locationManager;
-    Criteria defaultCriteria;
-    String providerName;
+    private LocationManager locationManager;
+    private Criteria defaultCriteria;
+    private String providerName;
 
-    boolean isScanning;
-    boolean isConnected;
-    boolean locationUpdating;
+    private boolean isScanning;
+    private boolean isConnected;
+    private boolean locationUpdating;
 
-    customLocationListener customListener;
-    Location currLocation;
+    private customLocationListener customListener;
+    private Location currLocation;
 
-    Button btnConnect;
+    private Button btnConnect;
     //Button btnSend;
-    Button btnViewMap;
-    Button btnViewIncidents;
+    private Button btnViewMap;
+    private Button btnViewIncidents;
     ListView messageList;
     //EditText messageBox;
-    ArrayAdapter<String> messageAdapter;
+    private ArrayAdapter<String> messageAdapter;
 
-    DBManager dbManager;
+    private DBManager dbManager;
+
+    private Vibrator vibrator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,28 +125,30 @@ public class MainActivity extends ActionBarActivity {
         isConnected = false;
         locationUpdating = false;
 
-        customListener = new customLocationListener();
-        currLocation = null;
-
         //Get instance of class that manages the database
         dbManager = new DBManager(getBaseContext());
+
+        vibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
 
         //Adapter for the listview
         messageAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
 
-        //Set up buttons
+        //Get instances of views from layout, and set them up
         btnConnect = (Button)findViewById(R.id.btnConnect);
         btnConnect.setOnClickListener(new connectDevice());
-
-        /*btnSend = (Button)findViewById(R.id.btnSend);
-        btnSend.setOnClickListener(new sendMessage());
-        btnSend.setEnabled(false);*/
 
         btnViewIncidents = (Button)findViewById(R.id.btnViewIncidents);
         btnViewIncidents.setOnClickListener(new viewIncidents());
 
         btnViewMap = (Button)findViewById(R.id.btnViewMap);
         btnViewMap.setOnClickListener(new viewMap());
+
+        messageList = (ListView)findViewById(R.id.messageList);
+        messageList.setAdapter(messageAdapter);
+
+        /*btnSend = (Button)findViewById(R.id.btnSend);
+        btnSend.setOnClickListener(new sendMessage());
+        btnSend.setEnabled(false);*/
 
         //Set up edittext
         /*messageBox = (EditText)findViewById(R.id.messageBox);
@@ -161,41 +170,51 @@ public class MainActivity extends ActionBarActivity {
         });*/
 
         //Set up listview
-        messageList = (ListView)findViewById(R.id.messageList);
-        messageList.setAdapter(messageAdapter);
     }//End init()
 
+    //Tries to start scanning for bluetooth devices
     private void tryToScanForBTDevices(){
+        //Check if it's already scanning or already connected to the device
         if(!isScanning && !isConnected)
         {
+            //Clear out the listbox to make it cleaner to look at
             messageAdapter.clear();
+
+            //Upadte value
             isScanning = true;
             displayStatus("Scanning");
+
+            //Start the scan
             BTAdapter.startLeScan(scanCallback);
 
+            //Set up to make the scanning stop after a time period
             final Handler handler = new Handler();
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
+                    //Check if still scanning(connected to a device if it stopped)
                     if(isScanning)
                     {
+                        //Stop the scanning
                         isScanning = false;
                         displayStatus("Stop Scanning");
                         BTAdapter.stopLeScan(scanCallback);
 
+                        //Set up to start scanning again after a delay
                         handler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
                                 tryToScanForBTDevices();
                             }
-                        }, 5000);
+                        }, SCAN_PERIOD);
                     }
 
                 }
-            }, 3000);
+            }, SCAN_DELAY);
         }
         else
         {
+            //Give feedback to the user
             if(isScanning)
                 Toast.makeText(getBaseContext(), "Already scanning", Toast.LENGTH_LONG).show();
 
@@ -210,7 +229,6 @@ public class MainActivity extends ActionBarActivity {
         super.onResume();
 
         tryToScanForBTDevices();
-        //BTAdapter.startLeScan(scanCallback);
     }
 
     //When program is terminated, disconnect everything related to bluetooth
@@ -276,20 +294,29 @@ public class MainActivity extends ActionBarActivity {
             //Check if disconnected
             else if(newState == BluetoothGatt.STATE_DISCONNECTED)
             {
+                //Since bluetooth runs on a different thread, need to talk to UI thread
                 MainActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        //Stop updating position to save on battery
                         if(locationUpdating)
                         {
                             locationManager.removeUpdates(customListener);
                             locationUpdating = false;
                         }
 
+
+                        //TODO might not be needed
+                        /******************************/
                         displayStatus("Stopped Scanning");
                         isScanning = false;
                         BTAdapter.stopLeScan(scanCallback);
+                        /******************************/
+
                         displayStatus("Disconnected");
                         isConnected = false;
+
+                        //Set up to start scanning again after connection was lost
                         tryToScanForBTDevices();
                     }
                 });
@@ -318,7 +345,7 @@ public class MainActivity extends ActionBarActivity {
 
             if(!gatt.setCharacteristicNotification(RXChar, true))
             {
-                displayStatus("Couldn't RX notification");
+                displayStatus("Couldn't get RX notification");
             }
 
             if(RXChar.getDescriptor(CLIENT_UUID) != null)
@@ -337,14 +364,22 @@ public class MainActivity extends ActionBarActivity {
             }
         }
 
+        //Called when a value is sent over bluetooth
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
+
+            //Update user on the value
             displayStatus("Distance of object: " + characteristic.getStringValue(0) + "cm");
+
+            vibrator.vibrate(1000);
 
             try
             {
+                //Make a incident from the value sent over
                 Incident newIncident = createIncident(characteristic.getStringValue(0));
+
+                //Insert value into DB
                 dbManager.insertIncident(newIncident);
             }
             catch(Exception e)
@@ -354,29 +389,36 @@ public class MainActivity extends ActionBarActivity {
         }
     };
 
+    //Method for handling scanning
     private LeScanCallback scanCallback = new LeScanCallback(){
 
+        //Called when a device is found
         @Override
         public void onLeScan(BluetoothDevice bluetoothDevice, int i, byte[] bytes) {
             String name = bluetoothDevice.getName();
             //String address = bluetoothDevice.getAddress();
-
             //displayStatus("Found device: " + name + ", " + address);
 
+            //If true, UART device was found
             if(parseUUIDs(bytes).contains(UART_UUID)){
-                //Found UART device, stop scan
+                //Inform user that the device is being connected to
                 displayStatus("Scanning stopped");
                 displayStatus("Connecting to " + name);
+
+                //Stop scanning
                 isScanning = false;
                 BTAdapter.stopLeScan(scanCallback);
 
                 //displayStatus("Found UART device");
 
+                //Connect to the device
                 connectedGatt = bluetoothDevice.connectGatt(getApplicationContext(), false, mGattCallback);
             }
         }
     };
 
+    //Puts the string message into the lisview for user to see
+    //Can be called from threads that don't run on UI
     private void displayStatus(final String message){
         runOnUiThread(new Runnable() {
             @Override
@@ -389,6 +431,7 @@ public class MainActivity extends ActionBarActivity {
         });
     }
 
+    //Handler for button to try scanning for device again if it stops for some reason, user can manually start it
     public class connectDevice implements OnClickListener{
 
         @Override
@@ -401,8 +444,10 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onClick(View view) {
+            //Clean things up to prepare for exiting activity
             finishForActivityChange();
 
+            //Send user to other activity
             Intent newIntent = new Intent(getBaseContext(), ViewIncidents.class);
             startActivity(newIntent);
         }
@@ -412,13 +457,16 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onClick(View view) {
+            //Clean things up to prepare for exiting activity
             finishForActivityChange();
 
+            //Send user to other activity
             Intent newIntent = new Intent(getBaseContext(), MapActivity.class);
             startActivity(newIntent);
         }
     }
 
+    //Class for handling sending a message over bluetooth
     /*public class sendMessage implements OnClickListener{
 
         @Override
@@ -445,12 +493,14 @@ public class MainActivity extends ActionBarActivity {
         }
     }*/
 
+    //Handles startActivityForReset calls returning
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         //Bluetooth enable request
         if(requestCode == 1)
         {
+            //End application if user didn't enable bluetooth because it's required to work
             if(resultCode == RESULT_CANCELED)
             {
                 Toast.makeText(getApplicationContext(), "App requires bluetooth", Toast.LENGTH_LONG);
@@ -459,31 +509,37 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    //Pre-condition: Accepts a distance value as a string
+    //Post-codition: Returns an incident with the passed in distance value
     public Incident createIncident(String newDistance){
         int distance = Integer.parseInt(newDistance);
 
         DateFormat df = new SimpleDateFormat("h:mm a");
         String time = df.format((Calendar.getInstance().getTime()));
 
-        df = new SimpleDateFormat("dd/MM/yyyy");
+        df = new SimpleDateFormat("d/MM/yyyy");
         String date = df.format((Calendar.getInstance().getTime()));
 
-        //Start checking for location updates
+        //Get the most recent location value
         Location currentLocation = currLocation;
         String lat = "";
         String lng = "";
 
+        //Check if there is a value for location
         if(currentLocation != null)
         {
+            //Get the lat and longitude values
             lat = String.valueOf(currentLocation.getLatitude());
             lng = String.valueOf(currentLocation.getLongitude());
         }
+        //Location is empty but incidents still occurred
         else
         {
             lat = "null";
             lng = "null";
         }
 
+        //Make an incident with all the values
         Incident newIncident = new Incident(distance, time, date, lat, lng);
 
         return newIncident;
@@ -494,8 +550,8 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void onLocationChanged(Location location) {
+            //Update the location
             currLocation = location;
-            Toast.makeText(getBaseContext(), "Location updated", Toast.LENGTH_LONG).show();
         }
 
         @Override
@@ -514,6 +570,7 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    //Builds a list of the devices UUIDs
     private List<UUID> parseUUIDs(final byte[] advertisedData) {
         List<UUID> uuids = new ArrayList<UUID>();
 

@@ -125,6 +125,7 @@ public class DBManager{
             int dataUsedIndex = recordSet.getColumnIndex("data_used");
             int dataUsed = recordSet.getInt(dataUsedIndex);
 
+            //Check if the data hasn't already been uploaded to the server
             if(dataUsed == 0)
             {
                 //Get all of the values to create an incident
@@ -151,6 +152,8 @@ public class DBManager{
                 Incident currIncident = new Incident(distance, time, date, lat, lng);
                 incidentArray.add(currIncident);
 
+                //TODO maybe change this so it doesn't change unless the upload is confirmed
+                //Update the value of the entry to say that it has been uploaded to the server
                 String updateQuery = "UPDATE tblIncident SET data_used='1' WHERE incidentID='" + id + "';";
                 incidentDB.execSQL(updateQuery);
             }
