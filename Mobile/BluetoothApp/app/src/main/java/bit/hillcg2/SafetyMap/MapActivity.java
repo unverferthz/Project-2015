@@ -2,6 +2,7 @@ package bit.hillcg2.SafetyMap;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -13,7 +14,6 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
-
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -56,12 +56,10 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         //Get instances of views from layouts and set them up
         btnBackFromMap = (Button)findViewById(R.id.btnBackFromMap);
         btnBackFromMap.setOnClickListener(new backToMainScreen());
+        btnBackFromMap.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
 
         spinMonth = (Spinner)findViewById(R.id.spinMonth);
-        spinMonth.setOnItemSelectedListener(new monthSelected());
-
         spinDay = (Spinner)findViewById(R.id.spinDay);
-        spinDay.setOnItemSelectedListener(new daySelected());
 
         Calendar cal = Calendar.getInstance();
 
@@ -92,10 +90,12 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         spinMonth.setAdapter(monthAdapter);
         spinDay.setAdapter(dayAdapter);
 
-        //TODO fix the days selection
         //Set up spinners with their initial values
-        spinMonth.setSelection(currMonth);
-        spinDay.setSelection(today);
+        spinMonth.setSelection(currMonth, false);
+        spinDay.setSelection(today, false);
+
+        spinDay.setOnItemSelectedListener(new daySelected());
+        spinMonth.setOnItemSelectedListener(new monthSelected());
 
         //Get the database manager
         dbManager = new DBManager(this);
@@ -136,7 +136,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         //Pull all incidents out from database
         ArrayList<Incident> allIncidents = dbManager.getAllIncidents();
 
-        //TODO figure out how to remove 0 from database input
+        //Todo remove the 0
         //Get the date values from spinners
         String selectedMonth = "0" + String.valueOf(spinMonth.getSelectedItemPosition() + 1);
         String selectedDay = spinDay.getSelectedItem().toString();

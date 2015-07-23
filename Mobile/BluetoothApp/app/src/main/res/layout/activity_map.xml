@@ -17,7 +17,7 @@
                 android:layout_height="match_parent"
                 android:text="@string/month"
                 android:id="@+id/textView"
-                android:textSize="30dp"
+                android:textSize="25dp"
                 android:gravity="center_vertical" />
 
             <Spinner
@@ -30,7 +30,7 @@
                 android:layout_height="match_parent"
                 android:text="@string/day"
                 android:id="@+id/textView2"
-                android:textSize="30dp"
+                android:textSize="25dp"
                 android:gravity="center_vertical" />
 
             <Spinner

@@ -180,8 +180,9 @@ public class MainActivity extends ActionBarActivity {
             //Clear out the listbox to make it cleaner to look at
             messageAdapter.clear();
 
-            //Upadte value
+            //Update value
             isScanning = true;
+            displayStatus("Please make sure device is switched on");
             displayStatus("Scanning");
 
             //Start the scan
@@ -197,7 +198,7 @@ public class MainActivity extends ActionBarActivity {
                     {
                         //Stop the scanning
                         isScanning = false;
-                        displayStatus("Stop Scanning");
+                        displayStatus("Stopped Scanning");
                         BTAdapter.stopLeScan(scanCallback);
 
                         //Set up to start scanning again after a delay
@@ -228,7 +229,14 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
 
-        tryToScanForBTDevices();
+        if(BTAdapter != null)
+        {
+            //Check if blue tooth is turned on
+            if (BTAdapter.isEnabled())
+            {
+                tryToScanForBTDevices();
+            }
+        }
     }
 
     //When program is terminated, disconnect everything related to bluetooth
@@ -308,9 +316,9 @@ public class MainActivity extends ActionBarActivity {
 
                         //TODO might not be needed
                         /******************************/
-                        displayStatus("Stopped Scanning");
+                        /*displayStatus("Stopped Scanning");
                         isScanning = false;
-                        BTAdapter.stopLeScan(scanCallback);
+                        BTAdapter.stopLeScan(scanCallback);*/
                         /******************************/
 
                         displayStatus("Disconnected");
@@ -506,11 +514,15 @@ public class MainActivity extends ActionBarActivity {
                 Toast.makeText(getApplicationContext(), "App requires bluetooth", Toast.LENGTH_LONG);
                 finish();
             }
+            if(resultCode == RESULT_OK)
+            {
+                tryToScanForBTDevices();
+            }
         }
     }
 
     //Pre-condition: Accepts a distance value as a string
-    //Post-codition: Returns an incident with the passed in distance value
+    //Post-condition: Returns an incident with the passed in distance value
     public Incident createIncident(String newDistance){
         int distance = Integer.parseInt(newDistance);
 

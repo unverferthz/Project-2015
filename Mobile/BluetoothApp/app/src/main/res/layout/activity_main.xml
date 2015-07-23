@@ -9,7 +9,7 @@
     <Button
         android:layout_width="197dp"
         android:layout_height="wrap_content"
-        android:text="@string/connect_device"
+        android:text="@string/try_connect"
         android:id="@+id/btnConnect"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
