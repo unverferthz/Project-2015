@@ -103,9 +103,8 @@ public class ViewIncidents extends ActionBarActivity {
 
         listAdapter.clear();
 
-        //TODO remove the 0
         //Get the date values from spinners
-        String selectedMonth = "0" + String.valueOf(spinMonth.getSelectedItemPosition() + 1);
+        String selectedMonth = String.valueOf(spinMonth.getSelectedItemPosition() + 1);
         String selectedDay = spinDay.getSelectedItem().toString();
 
         //Ask database for all of the incidents
@@ -180,13 +179,10 @@ public class ViewIncidents extends ActionBarActivity {
     }
 
     //Informs user if the upload was successful
-    public void finishedUpload(boolean success){
+    public void finishedUpload(String uploadMessage){
         btnSendData.setEnabled(true);
 
-        if(success)
-            Toast.makeText(getBaseContext(), "Uploaded data", Toast.LENGTH_LONG).show();
-        else
-            Toast.makeText(getBaseContext(), "No new data", Toast.LENGTH_LONG).show();
+            Toast.makeText(getBaseContext(), uploadMessage, Toast.LENGTH_LONG).show();
     }
 
     private class monthSelected implements OnItemSelectedListener {

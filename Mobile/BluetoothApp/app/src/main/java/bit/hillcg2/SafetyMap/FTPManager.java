@@ -46,6 +46,7 @@ public class FTPManager {
     //Creates a text file from the sqlite database incidents and returns it as a text file
     private File createFileToSend(){
         ArrayList<Incident> allIncidents = dbManager.getNewIncidents();
+       // ArrayList<Incident> allIncidents = dbManager.getAllIncidents();
 
         File outputFile = null;
 
@@ -105,28 +106,33 @@ public class FTPManager {
             }
         }
 
+        long amount = outputFile.length();
+
         //Returns null file if no new data
         return outputFile;
     }
 
     //Class for handling asynchronous sending of file
-    public class AsyncSendFile extends AsyncTask<Void,Void,Boolean>
+    public class AsyncSendFile extends AsyncTask<Void,Void,String>
     {
         @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            super.onPostExecute(aBoolean);
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            if(s.equals("Upload successful"))
+                dbManager.confirmedUpload();
 
             //Inform the activity that the upload has finished, return the result
-            incidentActivity.finishedUpload(aBoolean);
+            incidentActivity.finishedUpload(s);
         }
 
         //Asynchronous call
         @Override
-        protected Boolean doInBackground(Void... voids) {
+        protected String doInBackground(Void... voids) {
             //Get the text file that needs to be sent
             File outputFile = createFileToSend();
 
-            boolean success = false;
+            String uploadMessage = "Upload failed";
 
             //Check that there was actually a file
             if(outputFile != null)
@@ -180,25 +186,28 @@ public class FTPManager {
                     //Close connections
                     sftp.disconnect();
                     session.disconnect();
-                    success = true;
+                    uploadMessage = "Upload successful";
 
                     //mFTP.disconnect();
                 }
                 catch (IOException e)
                 {
                     e.printStackTrace();
+                    uploadMessage = e.toString();
                 }
                 catch (JSchException e)
                 {
                     e.printStackTrace();
+                    uploadMessage = e.toString();
                 }
                 catch (SftpException e)
                 {
                     e.printStackTrace();
+                    uploadMessage = e.toString();
                 }
             }
             //Return whether it was successful or not
-            return success;
+            return uploadMessage;
         }
     }
 }

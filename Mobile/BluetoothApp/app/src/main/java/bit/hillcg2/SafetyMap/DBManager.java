@@ -151,11 +151,6 @@ public class DBManager{
                 //Create the incident and add it into array
                 Incident currIncident = new Incident(distance, time, date, lat, lng);
                 incidentArray.add(currIncident);
-
-                //TODO maybe change this so it doesn't change unless the upload is confirmed
-                //Update the value of the entry to say that it has been uploaded to the server
-                String updateQuery = "UPDATE tblIncident SET data_used='1' WHERE incidentID='" + id + "';";
-                incidentDB.execSQL(updateQuery);
             }
 
             //Get next record
@@ -167,6 +162,46 @@ public class DBManager{
 
         //Return all of the incidents
         return incidentArray;
+    }
+
+    //Changes status of all incidents that haven't been uploaded to say they have
+    public void confirmedUpload(){
+        //Reconnect to database
+        incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
+
+        //Make query and execute to get all records
+        String selectQuery = "SELECT * FROM tblIncident";
+        Cursor recordSet = incidentDB.rawQuery(selectQuery, null);
+
+        //Set up to loop
+        recordSet.moveToFirst();
+
+        int recordCount = recordSet.getCount();
+
+        //Loop over all of the records
+        for(int i=0; i < recordCount; i++)
+        {
+            int dataUsedIndex = recordSet.getColumnIndex("data_used");
+            int dataUsed = recordSet.getInt(dataUsedIndex);
+
+            //Check if the data hasn't already been uploaded to the server
+            if(dataUsed == 0)
+            {
+                //Get all of the values to create an incident
+                int idIndex = recordSet.getColumnIndex("incidentID");
+                int id = recordSet.getInt(idIndex);
+
+                //Update the value of the entry to say that it has been uploaded to the server
+                String updateQuery = "UPDATE tblIncident SET data_used='1' WHERE incidentID='" + id + "';";
+                incidentDB.execSQL(updateQuery);
+            }
+
+            //Get next record
+            recordSet.moveToNext();
+        }
+
+        //Close connection to DB
+        incidentDB.close();
     }
 
     //Drops the incident table from DB and recreates it

@@ -76,7 +76,6 @@ public class MainActivity extends ActionBarActivity {
     private ArrayAdapter<String> messageAdapter;
 
     private DBManager dbManager;
-
     private Vibrator vibrator;
 
     @Override
@@ -314,12 +313,10 @@ public class MainActivity extends ActionBarActivity {
                         }
 
 
-                        //TODO might not be needed
-                        /******************************/
-                        /*displayStatus("Stopped Scanning");
+                        //Make sure that everything is set up so scanning will start if disconnected
+                        displayStatus("Stopped Scanning");
                         isScanning = false;
-                        BTAdapter.stopLeScan(scanCallback);*/
-                        /******************************/
+                        BTAdapter.stopLeScan(scanCallback);
 
                         displayStatus("Disconnected");
                         isConnected = false;
@@ -529,7 +526,8 @@ public class MainActivity extends ActionBarActivity {
         DateFormat df = new SimpleDateFormat("h:mm a");
         String time = df.format((Calendar.getInstance().getTime()));
 
-        df = new SimpleDateFormat("d/MM/yyyy");
+        //Changed from ("d/MM/yyyy")
+        df = new SimpleDateFormat("d/M/yyyy");
         String date = df.format((Calendar.getInstance().getTime()));
 
         //Get the most recent location value

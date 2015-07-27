@@ -136,9 +136,8 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         //Pull all incidents out from database
         ArrayList<Incident> allIncidents = dbManager.getAllIncidents();
 
-        //Todo remove the 0
         //Get the date values from spinners
-        String selectedMonth = "0" + String.valueOf(spinMonth.getSelectedItemPosition() + 1);
+        String selectedMonth = String.valueOf(spinMonth.getSelectedItemPosition() + 1);
         String selectedDay = spinDay.getSelectedItem().toString();
 
         //Loop over all the incidents
