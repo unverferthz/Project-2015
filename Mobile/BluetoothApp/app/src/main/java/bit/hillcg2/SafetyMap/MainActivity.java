@@ -233,7 +233,8 @@ public class MainActivity extends ActionBarActivity {
             //Check if blue tooth is turned on
             if (BTAdapter.isEnabled())
             {
-                tryToScanForBTDevices();
+                if(!isScanning)
+                    tryToScanForBTDevices();
             }
         }
     }

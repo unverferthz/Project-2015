@@ -59,21 +59,22 @@ public class ViewIncidents extends ActionBarActivity {
 
         //Get the current month and day to set initial values into spinners
         int currMonth = cal.get(Calendar.MONTH);
-        int today = cal.get(Calendar.DAY_OF_MONTH) - 1;
 
         //Find out how many days the current month has
         int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-        days = new String[daysInMonth];
+        int daysArraySize = daysInMonth + 1;
+        days = new String[daysArraySize];
+        days[0] = "All";
 
         //Set up array to have all the days of the current month to use for spinner
         for(int i=0; i < daysInMonth; i++)
         {
             String currDay = String.valueOf(i + 1);
-            days[i] = currDay;
+            days[i + 1] = currDay;
         }
 
         //Array holding all months to use for spinner
-        months = new String[]{"January", "February", "March", "April", "May", "June",
+        months = new String[]{"All", "January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"};
 
         //Set up adapters for the spinners
@@ -85,8 +86,8 @@ public class ViewIncidents extends ActionBarActivity {
         spinDay.setAdapter(dayAdapter);
 
         //Set up spinners with their initial values
-        spinMonth.setSelection(currMonth, false);
-        spinDay.setSelection(today, false);
+        spinMonth.setSelection(currMonth + 1, false);
+        spinDay.setSelection(0, false);
 
         spinDay.setOnItemSelectedListener(new daySelected());
         spinMonth.setOnItemSelectedListener(new monthSelected());
@@ -100,11 +101,10 @@ public class ViewIncidents extends ActionBarActivity {
 
     //Reads in incidents from database and puts them into listview
     public void populateList(){
-
         listAdapter.clear();
 
         //Get the date values from spinners
-        String selectedMonth = String.valueOf(spinMonth.getSelectedItemPosition() + 1);
+        String selectedMonth = String.valueOf(spinMonth.getSelectedItemPosition());
         String selectedDay = spinDay.getSelectedItem().toString();
 
         //Ask database for all of the incidents
@@ -114,6 +114,7 @@ public class ViewIncidents extends ActionBarActivity {
 
         //Loop over all of the incidents
         for(Incident currIncident : incidentArray){
+            counter++;
             //Get the date value to check if it's the same as spinner values
             String date = currIncident.getDate();
 
@@ -122,11 +123,41 @@ public class ViewIncidents extends ActionBarActivity {
             String currMonth = splitDate[1];
             String currDay = splitDate[0];
 
-            //Check if month and day are the same for incident and spinner values
-            if(currMonth.equals(selectedMonth) && currDay.equals(selectedDay))
+            //Show all months
+            if(selectedMonth.equals("0"))
             {
-                counter++;
+                //Built up string to put into list to display incidents to use
+                String textForList = "Incident " + counter + ":\n";
 
+                textForList += "Distance: " + currIncident.getDistance() + "cm\n";
+                textForList += "Time: " + currIncident.getTime() + "\n";
+                textForList += "Date: " + currIncident.getDate() + "\n";
+                textForList += "Latitude: " + currIncident.getLat() + "\n";
+                textForList += "Longitude: " + currIncident.getLng();
+
+                //Add into adapter and update so it can be seen
+                listAdapter.add(textForList);
+                listAdapter.notifyDataSetChanged();
+            }
+            //Do all days for a month
+            else if(currMonth.equals(selectedMonth) && selectedDay.equals("All"))
+            {
+                //Built up string to put into list to display incidents to use
+                String textForList = "Incident " + counter + ":\n";
+
+                textForList += "Distance: " + currIncident.getDistance() + "cm\n";
+                textForList += "Time: " + currIncident.getTime() + "\n";
+                textForList += "Date: " + currIncident.getDate() + "\n";
+                textForList += "Latitude: " + currIncident.getLat() + "\n";
+                textForList += "Longitude: " + currIncident.getLng();
+
+                //Add into adapter and update so it can be seen
+                listAdapter.add(textForList);
+                listAdapter.notifyDataSetChanged();
+            }
+            //Check if month and day are the same for incident and spinner values
+            else if(currMonth.equals(selectedMonth) && currDay.equals(selectedDay))
+            {
                 //Built up string to put into list to display incidents to use
                 String textForList = "Incident " + counter + ":\n";
 
@@ -181,8 +212,7 @@ public class ViewIncidents extends ActionBarActivity {
     //Informs user if the upload was successful
     public void finishedUpload(String uploadMessage){
         btnSendData.setEnabled(true);
-
-            Toast.makeText(getBaseContext(), uploadMessage, Toast.LENGTH_LONG).show();
+        Toast.makeText(getBaseContext(), uploadMessage, Toast.LENGTH_LONG).show();
     }
 
     private class monthSelected implements OnItemSelectedListener {
@@ -191,18 +221,29 @@ public class ViewIncidents extends ActionBarActivity {
             //The number of the month that was selected
             int clickedMonth = position;
 
-            //Set up and calculate how many days the selected month has
-            Calendar myCal = new GregorianCalendar(2015, clickedMonth, Integer.valueOf(spinDay.getSelectedItem().toString()));
-            int daysInMonth = myCal.getActualMaximum(Calendar.DAY_OF_MONTH);
-
-            //Set up a new array for days
-            days = new String[daysInMonth];
-
-            //Add the values into the days array
-            for (int i = 0; i < daysInMonth; i++)
+            //If month selected = 0, show all months
+            if (clickedMonth != 0)
             {
-                String currDay = String.valueOf(i + 1);
-                days[i] = currDay;
+                //Set up and calculate how many days the selected month has
+                Calendar myCal = new GregorianCalendar(2015, clickedMonth, 1);
+                int daysInMonth = myCal.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+                //Set up a new array for days
+                int daysArrayLength = daysInMonth + 1;
+                days = new String[daysArrayLength];
+                days[0] = "All";
+
+                //Add the values into the days array
+                for (int i = 0; i < daysInMonth; i++)
+                {
+                    String currDay = String.valueOf(i + 1);
+                    days[i + 1] = currDay;
+                }
+            }
+            else
+            {
+                days = new String[1];
+                days[0] = "All";
             }
 
             //TODO this is ugly, fix it

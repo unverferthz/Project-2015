@@ -45,8 +45,8 @@ public class FTPManager {
 
     //Creates a text file from the sqlite database incidents and returns it as a text file
     private File createFileToSend(){
-        ArrayList<Incident> allIncidents = dbManager.getNewIncidents();
-       // ArrayList<Incident> allIncidents = dbManager.getAllIncidents();
+        //ArrayList<Incident> allIncidents = dbManager.getNewIncidents();
+        ArrayList<Incident> allIncidents = dbManager.getAllIncidents();
 
         File outputFile = null;
 
@@ -137,8 +137,11 @@ public class FTPManager {
             //Check that there was actually a file
             if(outputFile != null)
             {
-                String user = "unverzp1";
-                String password = "11000712";
+               // String user = "unverzp1";
+                //String password = "11000712";
+
+                String user = "phone";
+                String password = "phone2015user";
 
                 //mFTP = new FTPClient();
                 jsch = new JSch();
@@ -154,7 +157,8 @@ public class FTPManager {
                     mFTP.enterLocalPassiveMode();*/
 
                     //Setup to SFTP file to server
-                    Session session = jsch.getSession(user, "kate.ict.op.ac.nz", 46815);
+                    //Session session = jsch.getSession(user, "kate.ict.op.ac.nz", 46815);
+                    Session session = jsch.getSession(user, "128.199.85.75", 22);
                     session.setConfig("PreferredAuthentications", "password");
                     session.setConfig("StrictHostKeyChecking", "no");
                     session.setPassword(password);
@@ -167,7 +171,8 @@ public class FTPManager {
                     FileInputStream inputStream = new FileInputStream(outputFile);
 
                     //Directory to put file into
-                    sftp.cd("/home/unverzp1/public_html/Project");
+                    //sftp.cd("/home/unverzp1/public_html/Project");
+                    sftp.cd("/home/phone");
 
                     //TODO may need to change if multiple users
                     DateFormat df = new SimpleDateFormat("hhmmss");
