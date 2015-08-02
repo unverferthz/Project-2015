@@ -17,8 +17,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.bluetooth.BluetoothAdapter.LeScanCallback;
@@ -33,6 +33,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import android.os.Vibrator;
 
@@ -63,6 +65,7 @@ public class MainActivity extends ActionBarActivity {
     private boolean isScanning;
     private boolean isConnected;
     private boolean locationUpdating;
+    private boolean stopLoop;
 
     private customLocationListener customListener;
     private Location currLocation;
@@ -77,6 +80,8 @@ public class MainActivity extends ActionBarActivity {
 
     private DBManager dbManager;
     private Vibrator vibrator;
+    private Timer doubleValueCheckerTimer;
+    private Double timeBetweenValues;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +128,7 @@ public class MainActivity extends ActionBarActivity {
         isScanning = false;
         isConnected = false;
         locationUpdating = false;
+        stopLoop = false;
 
         //Get instance of class that manages the database
         dbManager = new DBManager(getBaseContext());
@@ -144,6 +150,9 @@ public class MainActivity extends ActionBarActivity {
 
         messageList = (ListView)findViewById(R.id.messageList);
         messageList.setAdapter(messageAdapter);
+
+        doubleValueCheckerTimer = new Timer();
+        timeBetweenValues = 0.00;
 
         /*btnSend = (Button)findViewById(R.id.btnSend);
         btnSend.setOnClickListener(new sendMessage());
@@ -167,22 +176,20 @@ public class MainActivity extends ActionBarActivity {
             public void afterTextChanged(Editable editable) {
             }
         });*/
-
-        //Set up listview
     }//End init()
 
     //Tries to start scanning for bluetooth devices
     private void tryToScanForBTDevices(){
         //Check if it's already scanning or already connected to the device
-        if(!isScanning && !isConnected)
+        if(!isScanning && !isConnected && !stopLoop)
         {
             //Clear out the listbox to make it cleaner to look at
             messageAdapter.clear();
 
             //Update value
             isScanning = true;
-            displayStatus("Please make sure device is switched on");
-            displayStatus("Scanning");
+            displayMessage("Please make sure device is switched on");
+            displayMessage("Scanning");
 
             //Start the scan
             BTAdapter.startLeScan(scanCallback);
@@ -197,7 +204,7 @@ public class MainActivity extends ActionBarActivity {
                     {
                         //Stop the scanning
                         isScanning = false;
-                        displayStatus("Stopped Scanning");
+                        displayMessage("Stopped Scanning");
                         BTAdapter.stopLeScan(scanCallback);
 
                         //Set up to start scanning again after a delay
@@ -266,6 +273,15 @@ public class MainActivity extends ActionBarActivity {
             connectedGatt = null;
         }
 
+        if(isScanning)
+            BTAdapter.stopLeScan(scanCallback);
+
+        isScanning = false;
+        isConnected = false;
+        stopLoop = true;
+
+        BTAdapter = null;
+
         RXChar = null;
         TXChar = null;
     }
@@ -290,13 +306,13 @@ public class MainActivity extends ActionBarActivity {
                 });
 
                 //Display message to user
-                displayStatus("Connected!");
+                displayMessage("Connected!");
                 isConnected = true;
 
                 //Try discover bluetooth devices services
                 if(!gatt.discoverServices())
                 {
-                    //displayStatus("Failed to start discovering services");
+                    //displayMessage("Failed to start discovering services");
                 }
             }
             //Check if disconnected
@@ -314,13 +330,26 @@ public class MainActivity extends ActionBarActivity {
                         }
 
 
-                        //Make sure that everything is set up so scanning will start if disconnected
-                        displayStatus("Stopped Scanning");
-                        isScanning = false;
-                        BTAdapter.stopLeScan(scanCallback);
+                        try
+                        {
+                            //Make sure that everything is set up so scanning will start if disconnected
+                            displayMessage("Stopped Scanning");
+                            isScanning = false;
+                            BTAdapter.stopLeScan(scanCallback);
 
-                        displayStatus("Disconnected");
-                        isConnected = false;
+                            displayMessage("Disconnected");
+                            isConnected = false;
+
+                            //Close off gatt for a fresh connection
+                            connectedGatt.disconnect();
+                            connectedGatt.close();
+                            connectedGatt = null;
+                        }
+                        catch(NullPointerException e)
+                        {
+
+                        }
+
 
                         //Set up to start scanning again after connection was lost
                         tryToScanForBTDevices();
@@ -329,7 +358,7 @@ public class MainActivity extends ActionBarActivity {
             }
             else
             {
-                displayStatus("Connection State changed. State: " + newState);
+                displayMessage("Connection State changed. State: " + newState);
             }
         }
 
@@ -339,11 +368,11 @@ public class MainActivity extends ActionBarActivity {
             super.onServicesDiscovered(gatt, status);
             if(status == BluetoothGatt.GATT_SUCCESS)
             {
-                //displayStatus("Service discovery completed");
+                //displayMessage("Service discovery completed");
             }
             else
             {
-                //displayStatus("Service discovery failed. Status: " + status);
+                //displayMessage("Service discovery failed. Status: " + status);
             }
 
             TXChar = gatt.getService(UART_UUID).getCharacteristic(TX_UUID);
@@ -351,7 +380,7 @@ public class MainActivity extends ActionBarActivity {
 
             if(!gatt.setCharacteristicNotification(RXChar, true))
             {
-                displayStatus("Couldn't get RX notification");
+                displayMessage("Couldn't get RX notification");
             }
 
             if(RXChar.getDescriptor(CLIENT_UUID) != null)
@@ -361,12 +390,12 @@ public class MainActivity extends ActionBarActivity {
 
                 if(!connectedGatt.writeDescriptor(descriptor))
                 {
-                    //displayStatus("Couldn't write descriptor");
+                    //displayMessage("Couldn't write descriptor");
                 }
             }
             else
             {
-                //displayStatus("Couldn't get descriptor");
+                //displayMessage("Couldn't get descriptor");
             }
         }
 
@@ -375,23 +404,57 @@ public class MainActivity extends ActionBarActivity {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
 
-            //Update user on the value
-            displayStatus("Distance of object: " + characteristic.getStringValue(0) + "cm");
-
-            vibrator.vibrate(1000);
-
-            try
+            if(timeBetweenValues == 0.00)
             {
-                //Make a incident from the value sent over
-                Incident newIncident = createIncident(characteristic.getStringValue(0));
+                //Update user on the value
+                displayMessage("Distance of object: " + characteristic.getStringValue(0) + "cm");
 
-                //Insert value into DB
-                dbManager.insertIncident(newIncident);
+                vibrator.vibrate(1000);
+
+                try
+                {
+                    //Make a incident from the value sent over
+                    Incident newIncident = createIncident(characteristic.getStringValue(0));
+
+                    //Insert value into DB
+                    dbManager.insertIncident(newIncident);
+                }
+                catch (Exception e)
+                {
+                    Toast.makeText(getBaseContext(), "Error creating incident", Toast.LENGTH_LONG).show();
+                }
+
+                timeBetweenValues = 0.00;
+
+                doubleValueCheckerTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        timerMethod();
+                    }
+                }, 0, 10);
             }
-            catch(Exception e)
+            else
             {
-                Toast.makeText(getBaseContext(), "Error creating incident", Toast.LENGTH_LONG).show();
+                if(timeBetweenValues > 0.5)
+                {
+                    doubleValueCheckerTimer.cancel();
+                    timeBetweenValues = 0.00;
+                }
             }
+        }
+    };
+
+    //Method called by the timer, can only interact with timer thread
+    public void timerMethod(){
+        //Call thread to use UI
+        runOnUiThread(Timer_Tick);
+    }
+
+    //Thread to interact with UI and update time
+    private Runnable Timer_Tick = new Runnable() {
+        @Override
+        public void run() {
+            timeBetweenValues += 0.01;
         }
     };
 
@@ -400,36 +463,41 @@ public class MainActivity extends ActionBarActivity {
 
         //Called when a device is found
         @Override
-        public void onLeScan(BluetoothDevice bluetoothDevice, int i, byte[] bytes) {
+        public void onLeScan(final BluetoothDevice bluetoothDevice, int i, byte[] bytes) {
             String name = bluetoothDevice.getName();
             //String address = bluetoothDevice.getAddress();
-            //displayStatus("Found device: " + name + ", " + address);
+            //displayMessage("Found device: " + name + ", " + address);
 
             //If true, UART device was found
             if(parseUUIDs(bytes).contains(UART_UUID)){
                 //Inform user that the device is being connected to
-                displayStatus("Scanning stopped");
-                displayStatus("Connecting to " + name);
+                displayMessage("Scanning stopped");
+                displayMessage("Connecting to " + name);
 
                 //Stop scanning
                 isScanning = false;
                 BTAdapter.stopLeScan(scanCallback);
 
-                //displayStatus("Found UART device");
+                //displayMessage("Found UART device");
 
                 //Connect to the device
-                connectedGatt = bluetoothDevice.connectGatt(getApplicationContext(), false, mGattCallback);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        connectedGatt = bluetoothDevice.connectGatt(getApplicationContext(), false, mGattCallback);
+                    }
+                });
+                //connectedGatt = bluetoothDevice.connectGatt(getApplicationContext(), false, mGattCallback);
             }
         }
     };
 
     //Puts the string message into the lisview for user to see
     //Can be called from threads that don't run on UI
-    private void displayStatus(final String message){
+    private void displayMessage(final String message){
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                //Toast.makeText(getBaseContext(), message, Toast.LENGTH_SHORT).show();
                 messageAdapter.add(message);
                 messageAdapter.notifyDataSetChanged();
                 messageList.setSelection(messageAdapter.getCount() - 1);
@@ -472,53 +540,6 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    //Class for handling sending a message over bluetooth
-    /*public class sendMessage implements OnClickListener{
-
-        @Override
-        public void onClick(View view) {
-            String message = messageBox.getText().toString();
-            messageBox.setText("");
-
-            btnSend.setEnabled(false);
-
-            if(TXChar == null || message == null || message.isEmpty())
-            {
-                return;
-            }
-
-            TXChar.setValue(message.getBytes(Charset.forName("UTF-8")));
-            if(connectedGatt.writeCharacteristic(TXChar))
-            {
-                Toast.makeText(getBaseContext(), "Sent", Toast.LENGTH_LONG).show();
-            }
-            else
-            {
-                Toast.makeText(getBaseContext(), "Couldn't send", Toast.LENGTH_LONG).show();
-            }
-        }
-    }*/
-
-    //Handles startActivityForReset calls returning
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        //Bluetooth enable request
-        if(requestCode == 1)
-        {
-            //End application if user didn't enable bluetooth because it's required to work
-            if(resultCode == RESULT_CANCELED)
-            {
-                Toast.makeText(getApplicationContext(), "App requires bluetooth", Toast.LENGTH_LONG);
-                finish();
-            }
-            if(resultCode == RESULT_OK)
-            {
-                tryToScanForBTDevices();
-            }
-        }
-    }
-
     //Pre-condition: Accepts a distance value as a string
     //Post-condition: Returns an incident with the passed in distance value
     public Incident createIncident(String newDistance){
@@ -554,6 +575,27 @@ public class MainActivity extends ActionBarActivity {
         Incident newIncident = new Incident(distance, time, date, lat, lng);
 
         return newIncident;
+    }
+
+
+    //Handles startActivityForReset calls returning
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        //Bluetooth enable request
+        if(requestCode == 1)
+        {
+            //End application if user didn't enable bluetooth because it's required to work
+            if(resultCode == RESULT_CANCELED)
+            {
+                Toast.makeText(getApplicationContext(), "App requires bluetooth", Toast.LENGTH_LONG);
+                finish();
+            }
+            if(resultCode == RESULT_OK)
+            {
+                tryToScanForBTDevices();
+            }
+        }
     }
 
     //Custom class for handling gps change
@@ -632,4 +674,30 @@ public class MainActivity extends ActionBarActivity {
         return uuids;
     }
 
+    //Class for handling sending a message over bluetooth
+    /*public class sendMessage implements OnClickListener{
+
+        @Override
+        public void onClick(View view) {
+            String message = messageBox.getText().toString();
+            messageBox.setText("");
+
+            btnSend.setEnabled(false);
+
+            if(TXChar == null || message == null || message.isEmpty())
+            {
+                return;
+            }
+
+            TXChar.setValue(message.getBytes(Charset.forName("UTF-8")));
+            if(connectedGatt.writeCharacteristic(TXChar))
+            {
+                Toast.makeText(getBaseContext(), "Sent", Toast.LENGTH_LONG).show();
+            }
+            else
+            {
+                Toast.makeText(getBaseContext(), "Couldn't send", Toast.LENGTH_LONG).show();
+            }
+        }
+    }*/
 }

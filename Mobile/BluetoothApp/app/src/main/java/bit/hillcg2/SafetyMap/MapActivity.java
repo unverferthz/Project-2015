@@ -65,21 +65,22 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 
         //Get the current month and day to set initial values into spinners
         int currMonth = cal.get(Calendar.MONTH);
-        int today = cal.get(Calendar.DAY_OF_MONTH) - 1;
 
         //Find out how many days the current month has
         int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-        days = new String[daysInMonth];
+        int daysArraySize = daysInMonth + 1;
+        days = new String[daysArraySize];
+        days[0] = "All";
 
         //Set up array to have all the days of the current month to use for spinner
         for(int i=0; i < daysInMonth; i++)
         {
             String currDay = String.valueOf(i + 1);
-            days[i] = currDay;
+            days[i + 1] = currDay;
         }
 
         //Array holding all months to use for spinner
-        months = new String[]{"January", "February", "March", "April", "May", "June",
+        months = new String[]{"All", "January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"};
 
         //Set up adapters for the spinners
@@ -91,8 +92,8 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         spinDay.setAdapter(dayAdapter);
 
         //Set up spinners with their initial values
-        spinMonth.setSelection(currMonth, false);
-        spinDay.setSelection(today, false);
+        spinMonth.setSelection(currMonth + 1, false);
+        spinDay.setSelection(0, false);
 
         spinDay.setOnItemSelectedListener(new daySelected());
         spinMonth.setOnItemSelectedListener(new monthSelected());
@@ -137,7 +138,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         ArrayList<Incident> allIncidents = dbManager.getAllIncidents();
 
         //Get the date values from spinners
-        String selectedMonth = String.valueOf(spinMonth.getSelectedItemPosition() + 1);
+        String selectedMonth = String.valueOf(spinMonth.getSelectedItemPosition());
         String selectedDay = spinDay.getSelectedItem().toString();
 
         //Loop over all the incidents
@@ -151,8 +152,52 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
             String currMonth = splitDate[1];
             String currDay = splitDate[0];
 
-            //Check if month and day are the same for incident and spinner values
-            if(currMonth.equals(selectedMonth) && currDay.equals(selectedDay))
+            //If all months selected
+            if(selectedMonth.equals("0"))
+            {
+                //Get the rest of the incidents data
+                int distance = i.getDistance();
+                String lat = i.getLat();
+                String lng = i.getLng();
+                String time = i.getTime();
+
+                //TODO do something with the null values
+                //Check that the incident has a GPS location
+                if (!lat.equals("null") && !lng.equals("null"))
+                {
+                    //Turn the gps locations into one the map can work with
+                    LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
+
+                    //Add marker for incident onto the map
+                    map.addMarker(new MarkerOptions()
+                            .position(incidentPos)
+                            .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
+                }
+            }
+            //If all days in a specific month selected
+            else if(currMonth.equals(selectedMonth) && selectedDay.equals("All"))
+            {
+                //Get the rest of the incidents data
+                int distance = i.getDistance();
+                String lat = i.getLat();
+                String lng = i.getLng();
+                String time = i.getTime();
+
+                //TODO do something with the null values
+                //Check that the incident has a GPS location
+                if (!lat.equals("null") && !lng.equals("null"))
+                {
+                    //Turn the gps locations into one the map can work with
+                    LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
+
+                    //Add marker for incident onto the map
+                    map.addMarker(new MarkerOptions()
+                            .position(incidentPos)
+                            .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
+                }
+            }
+            //If month and a day are selected
+            else if(currMonth.equals(selectedMonth) && currDay.equals(selectedDay))
             {
                 //Get the rest of the incidents data
                 int distance = i.getDistance();
@@ -190,18 +235,28 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
             //The number of the month that was selected
             int clickedMonth = pos;
 
-            //Set up and calculate how many days the selected month has
-            Calendar myCal = new GregorianCalendar(2015, clickedMonth, Integer.valueOf(spinDay.getSelectedItem().toString()));
-            int daysInMonth = myCal.getActualMaximum(Calendar.DAY_OF_MONTH);
-
-            //Set up a new array for days
-            days = new String[daysInMonth];
-
-            //Add the values into the days array
-            for (int i = 0; i < daysInMonth; i++)
+            if(clickedMonth != 0)
             {
-                String currDay = String.valueOf(i + 1);
-                days[i] = currDay;
+                //Set up and calculate how many days the selected month has
+                Calendar myCal = new GregorianCalendar(2015, clickedMonth, 1);
+                int daysInMonth = myCal.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+                //Set up a new array for days
+                int daysArraySize = daysInMonth + 1;
+                days = new String[daysArraySize];
+                days[0] = "All";
+
+                //Set up array to have all the days of the current month to use for spinner
+                for (int i = 0; i < daysInMonth; i++)
+                {
+                    String currDay = String.valueOf(i + 1);
+                    days[i + 1] = currDay;
+                }
+            }
+            else
+            {
+                days = new String[1];
+                days[0] = "All";
             }
 
             //TODO this is ugly, fix it
