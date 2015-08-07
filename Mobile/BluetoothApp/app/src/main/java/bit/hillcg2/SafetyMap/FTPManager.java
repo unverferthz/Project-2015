@@ -71,10 +71,14 @@ public class FTPManager {
 
                 int count = 0;
 
+                int numIncidents = allIncidents.size();
+
                 //Loop over all incidents and add into the text file
                 for (Incident i : allIncidents)
                 {
-                    String incidentString = "";
+                    //For JSON format
+
+                    /*String incidentString = "";
 
                     if (count != 0)
                         incidentString += ",{";
@@ -98,6 +102,31 @@ public class FTPManager {
 
                     outputStream.write(incidentString.getBytes());
                     count++;
+                }*/
+
+                    //CSV format
+                    String incidentString = "";
+                    String distance = String.valueOf(i.getDistance());
+                    incidentString += distance + ",";
+
+                    String time = i.getTime();
+                    incidentString += time + ",";
+
+                    String date = i.getDate();
+                    incidentString += date + ",";
+
+                    String lat = i.getLat();
+                    incidentString += lat + ",";
+
+                    String lng = i.getLng();
+                    incidentString += lng;
+
+                    count++;
+
+                    if(count < numIncidents)
+                        incidentString += ",";
+
+                    outputStream.write(incidentString.getBytes());
                 }
             }
             catch (IOException e)
@@ -137,11 +166,8 @@ public class FTPManager {
             //Check that there was actually a file
             if(outputFile != null)
             {
-               // String user = "unverzp1";
-                //String password = "11000712";
-
-                String user = "phone";
-                String password = "phone2015user";
+                String user = "";
+                String password = "";
 
                 //mFTP = new FTPClient();
                 jsch = new JSch();
@@ -149,7 +175,7 @@ public class FTPManager {
                 try
                 {
                     //Normal FTP didn't work need to use SFTP to upload to kate
-                    /*mFTP.connect("kate.ict.op.ac.nz", 46815);
+                    /*mFTP.connect("", );
 
                     mFTP.login(user, password);
 
@@ -157,8 +183,8 @@ public class FTPManager {
                     mFTP.enterLocalPassiveMode();*/
 
                     //Setup to SFTP file to server
-                    //Session session = jsch.getSession(user, "kate.ict.op.ac.nz", 46815);
-                    Session session = jsch.getSession(user, "128.199.85.75", 22);
+                    //Session session = jsch.getSession(user, "", 46815);
+                    Session session = jsch.getSession(user, "", 22);
                     session.setConfig("PreferredAuthentications", "password");
                     session.setConfig("StrictHostKeyChecking", "no");
                     session.setPassword(password);
