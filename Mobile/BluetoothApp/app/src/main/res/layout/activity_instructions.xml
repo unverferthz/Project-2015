@@ -1,0 +1,45 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
+    tools:context="bit.hillcg2.SafetyMap.Instructions"
+    android:background="#66BFB7">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/instructions_text"
+        android:id="@+id/textView10"
+        android:textColor="#ffffff"
+        android:textSize="25dp" />
+
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+        android:layout_marginTop="10dp"
+        android:id="@+id/scrollView"
+        android:layout_above="@+id/btnInstructionsBack">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/instructions"
+            android:id="@+id/textView9"
+            android:textColor="#ffffff"
+            android:textSize="20dp" />
+    </ScrollView>
+
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_back"
+        android:id="@+id/btnInstructionsBack"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:background="#66BFB7"
+        android:textColor="#ffffff" />
+
+</LinearLayout>

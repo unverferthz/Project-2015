@@ -16,7 +16,7 @@
 
     <!-- Custom styles for this template -->
     <link href="starter-template.css" rel="stylesheet">
-
+    
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -39,25 +39,30 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="map.html">Map</a></li>
-            <li><a href="#Graphs">Graphs</a></li>
+            <li class="active"><a href="">Home</a></li>
+            <li><a href="map.php">Map</a></li>
+            <li><a href="graphs.php">Graphs</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
 
     <div class="container">
+        
+        <div class="mainContainer">
+          <div class="textPadding">
+            <h1>Welcome to Roximal</h1>
+            <p>Roximal works by having cyclists wear a device while our cycling. The device will measure the distance between
+              the cyclist and vehicle. If the vehicle is within 1.5 meters then the incident is recorded and the data
+              can be seen here.</p>
+          </div>
+        </div>
 
-      <div class="starter-template">
-        <h1>Roximal</h1>
-        <p class="lead">Testing database</p>
-
+        <!--
         <?php
-        $host = "";
-        $userMS = "";
-        $passwordMS = "";
+        $host = "localhost";
+        $userMS = "root";
+        $passwordMS = "2015projectcz";
 
         $connection = mysql_connect($host,$userMS,$passwordMS) or die("Couldn't connect:".mysql_error());
 
@@ -82,17 +87,15 @@
 
               echo("ID: $id");echo("<br/>");
               echo("Distance: $distance");echo("<br/>");
-              echo("Time: $distance");echo("<br/>");
-              echo("Date: $distance");echo("<br/>");
-              echo("Latitude: $distance");echo("<br/>");
-              echo("Longitude: $distance");echo("<br/>");
+              echo("Time: $time");echo("<br/>");
+              echo("Date: $date");echo("<br/>");
+              echo("Latitude: $lat");echo("<br/>");
+              echo("Longitude: $lng");echo("<br/>");
 
             }
         }
         mysql_free_result($result);
-        ?>
-
-      </div>
+        ?>-->
 
     </div><!-- /.container -->
 

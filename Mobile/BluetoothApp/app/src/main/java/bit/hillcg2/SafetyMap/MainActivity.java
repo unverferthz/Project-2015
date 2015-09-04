@@ -1,6 +1,7 @@
 package bit.hillcg2.SafetyMap;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -11,6 +12,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -18,12 +20,18 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v4.content.ContextCompat;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.bluetooth.BluetoothAdapter.LeScanCallback;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.ListView;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -40,7 +48,7 @@ import android.os.Vibrator;
 
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     //TODO clean up this class
 
@@ -70,23 +78,25 @@ public class MainActivity extends ActionBarActivity {
     private customLocationListener customListener;
     private Location currLocation;
 
-    private Button btnConnect;
-    //Button btnSend;
-    private Button btnViewMap;
-    private Button btnViewIncidents;
-    ListView messageList;
-    //EditText messageBox;
     private ArrayAdapter<String> messageAdapter;
+    private MenuArrayAdapter menuAdapter;
+    private ListView menuList;
+    private ImageView btnConnectDevice;
+    private ImageView imageCenterOfRotation;
+    private TextView boxConnectionStatus;
 
     private DBManager dbManager;
     private Vibrator vibrator;
     private Timer doubleValueCheckerTimer;
     private Double timeBetweenValues;
 
+    private Animation animation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         //Get everything to initialize
         init();
@@ -118,6 +128,7 @@ public class MainActivity extends ActionBarActivity {
             Toast.makeText(getBaseContext(), "Problem encountered", Toast.LENGTH_LONG).show();
             finish();
         }
+
         //Set up location service
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         defaultCriteria = new Criteria();
@@ -135,47 +146,39 @@ public class MainActivity extends ActionBarActivity {
 
         vibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
 
+        animation = AnimationUtils.loadAnimation(this, R.anim.rotate_around_center_point);
+
         //Adapter for the listview
         messageAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
 
-        //Get instances of views from layout, and set them up
-        btnConnect = (Button)findViewById(R.id.btnConnect);
-        btnConnect.setOnClickListener(new connectDevice());
+        imageCenterOfRotation = (ImageView)findViewById(R.id.imageView3);
+        boxConnectionStatus = (TextView)findViewById(R.id.boxConnectionStatus);
 
-        btnViewIncidents = (Button)findViewById(R.id.btnViewIncidents);
-        btnViewIncidents.setOnClickListener(new viewIncidents());
+        menuAdapter = new MenuArrayAdapter(getBaseContext(), R.layout.menu_custom_listview);
 
-        btnViewMap = (Button)findViewById(R.id.btnViewMap);
-        btnViewMap.setOnClickListener(new viewMap());
+        menuList = (ListView)findViewById(R.id.menuList);
+        menuList.setAdapter(menuAdapter);
+        menuList.setOnItemClickListener(new menuListHandler());
 
-        messageList = (ListView)findViewById(R.id.messageList);
-        messageList.setAdapter(messageAdapter);
+        Drawable viewDataIcon = ContextCompat.getDrawable(this, R.drawable.view_data);
+        CustomMenuItem menuData = new CustomMenuItem(getResources().getString(R.string.btn_view_incidents), viewDataIcon);
+
+        Drawable mapIcon = ContextCompat.getDrawable(this, R.drawable.map);
+        CustomMenuItem menuMap = new CustomMenuItem(getResources().getString(R.string.view_map), mapIcon);
+
+        Drawable instructionsIcon = ContextCompat.getDrawable(this, R.drawable.instructions);
+        CustomMenuItem menuInstructions = new CustomMenuItem(getResources().getString(R.string.instructions_text), instructionsIcon);
+
+        menuAdapter.add(menuData);
+        menuAdapter.add(menuMap);
+        menuAdapter.add(menuInstructions);
+        menuAdapter.notifyDataSetChanged();
+
+        btnConnectDevice = (ImageView)findViewById(R.id.btnConnectToDevice);
+        btnConnectDevice.setOnClickListener(new connectDevice());
 
         doubleValueCheckerTimer = new Timer();
         timeBetweenValues = 0.00;
-
-        /*btnSend = (Button)findViewById(R.id.btnSend);
-        btnSend.setOnClickListener(new sendMessage());
-        btnSend.setEnabled(false);*/
-
-        //Set up edittext
-        /*messageBox = (EditText)findViewById(R.id.messageBox);
-        messageBox.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                //Enable button to send message when the edittext has been typed in
-                btnSend.setEnabled(true);
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });*/
     }//End init()
 
     //Tries to start scanning for bluetooth devices
@@ -183,13 +186,17 @@ public class MainActivity extends ActionBarActivity {
         //Check if it's already scanning or already connected to the device
         if(!isScanning && !isConnected && !stopLoop)
         {
+            Animation animation = AnimationUtils.loadAnimation(this, R.anim.rotate_around_center_point);
+            btnConnectDevice.startAnimation(animation);
+            
             //Clear out the listbox to make it cleaner to look at
             messageAdapter.clear();
+            boxConnectionStatus.setText("Searching");
 
             //Update value
             isScanning = true;
-            displayMessage("Please make sure device is switched on");
-            displayMessage("Scanning");
+            //displayMessage("Please make sure device is switched on");
+            //displayMessage("Scanning");
 
             //Start the scan
             BTAdapter.startLeScan(scanCallback);
@@ -204,7 +211,7 @@ public class MainActivity extends ActionBarActivity {
                     {
                         //Stop the scanning
                         isScanning = false;
-                        displayMessage("Stopped Scanning");
+                        //displayMessage("Stopped Scanning");
                         BTAdapter.stopLeScan(scanCallback);
 
                         //Set up to start scanning again after a delay
@@ -302,11 +309,16 @@ public class MainActivity extends ActionBarActivity {
                         //Start listening for GPS location change
                         locationManager.requestLocationUpdates(providerName, 5000, 5, customListener);
                         locationUpdating = true;
+
+                        btnConnectDevice.setImageResource(R.drawable.tick);
+                        imageCenterOfRotation.setImageDrawable(null);
+                        boxConnectionStatus.setText("Connected");
+                        btnConnectDevice.clearAnimation();
                     }
                 });
 
                 //Display message to user
-                displayMessage("Connected!");
+                //displayMessage("Connected!");
                 isConnected = true;
 
                 //Try discover bluetooth devices services
@@ -329,15 +341,14 @@ public class MainActivity extends ActionBarActivity {
                             locationUpdating = false;
                         }
 
-
                         try
                         {
                             //Make sure that everything is set up so scanning will start if disconnected
-                            displayMessage("Stopped Scanning");
+                            //displayMessage("Stopped Scanning");
                             isScanning = false;
                             BTAdapter.stopLeScan(scanCallback);
 
-                            displayMessage("Disconnected");
+                            //displayMessage("Disconnected");
                             isConnected = false;
 
                             //Close off gatt for a fresh connection
@@ -350,7 +361,6 @@ public class MainActivity extends ActionBarActivity {
 
                         }
 
-
                         //Set up to start scanning again after connection was lost
                         tryToScanForBTDevices();
                     }
@@ -358,7 +368,7 @@ public class MainActivity extends ActionBarActivity {
             }
             else
             {
-                displayMessage("Connection State changed. State: " + newState);
+                //displayMessage("Connection State changed. State: " + newState);
             }
         }
 
@@ -380,7 +390,7 @@ public class MainActivity extends ActionBarActivity {
 
             if(!gatt.setCharacteristicNotification(RXChar, true))
             {
-                displayMessage("Couldn't get RX notification");
+                //displayMessage("Couldn't get RX notification");
             }
 
             if(RXChar.getDescriptor(CLIENT_UUID) != null)
@@ -407,7 +417,7 @@ public class MainActivity extends ActionBarActivity {
             if(timeBetweenValues == 0.00)
             {
                 //Update user on the value
-                displayMessage("Distance of object: " + characteristic.getStringValue(0) + "cm");
+                //displayMessage("Distance of object: " + characteristic.getStringValue(0) + "cm");
 
                 vibrator.vibrate(1000);
 
@@ -464,21 +474,12 @@ public class MainActivity extends ActionBarActivity {
         //Called when a device is found
         @Override
         public void onLeScan(final BluetoothDevice bluetoothDevice, int i, byte[] bytes) {
-            String name = bluetoothDevice.getName();
-            //String address = bluetoothDevice.getAddress();
-            //displayMessage("Found device: " + name + ", " + address);
-
             //If true, UART device was found
             if(parseUUIDs(bytes).contains(UART_UUID)){
-                //Inform user that the device is being connected to
-                displayMessage("Scanning stopped");
-                displayMessage("Connecting to " + name);
-
                 //Stop scanning
                 isScanning = false;
                 BTAdapter.stopLeScan(scanCallback);
 
-                //displayMessage("Found UART device");
 
                 //Connect to the device
                 runOnUiThread(new Runnable() {
@@ -487,56 +488,43 @@ public class MainActivity extends ActionBarActivity {
                         connectedGatt = bluetoothDevice.connectGatt(getApplicationContext(), false, mGattCallback);
                     }
                 });
-                //connectedGatt = bluetoothDevice.connectGatt(getApplicationContext(), false, mGattCallback);
             }
         }
     };
-
-    //Puts the string message into the lisview for user to see
-    //Can be called from threads that don't run on UI
-    private void displayMessage(final String message){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                messageAdapter.add(message);
-                messageAdapter.notifyDataSetChanged();
-                messageList.setSelection(messageAdapter.getCount() - 1);
-            }
-        });
-    }
 
     //Handler for button to try scanning for device again if it stops for some reason, user can manually start it
     public class connectDevice implements OnClickListener{
 
         @Override
         public void onClick(View view) {
+            Toast.makeText(getBaseContext(), "Scanning", Toast.LENGTH_LONG).show();
             tryToScanForBTDevices();
         }
     }
 
-    public class viewIncidents implements OnClickListener{
+    public class menuListHandler implements AdapterView.OnItemClickListener{
 
         @Override
-        public void onClick(View view) {
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             //Clean things up to prepare for exiting activity
             finishForActivityChange();
 
-            //Send user to other activity
-            Intent newIntent = new Intent(getBaseContext(), ViewIncidents.class);
-            startActivity(newIntent);
-        }
-    }
+            Intent switchViewIntent = new Intent(getBaseContext(), MainActivity.class);
+            switch(position)
+            {
+                case 0:
+                    switchViewIntent = new Intent(getBaseContext(), ViewIncidents.class);
+                    break;
+                case 1:
+                    switchViewIntent = new Intent(getBaseContext(), MapActivity.class);
+                    break;
+                case 2:
+                    switchViewIntent = new Intent(getBaseContext(), Instructions.class);
+                    break;
+            }
 
-    public class viewMap implements OnClickListener{
-
-        @Override
-        public void onClick(View view) {
-            //Clean things up to prepare for exiting activity
-            finishForActivityChange();
-
-            //Send user to other activity
-            Intent newIntent = new Intent(getBaseContext(), MapActivity.class);
-            startActivity(newIntent);
+            startActivity(switchViewIntent);
+            finish();
         }
     }
 
@@ -674,30 +662,33 @@ public class MainActivity extends ActionBarActivity {
         return uuids;
     }
 
-    //Class for handling sending a message over bluetooth
-    /*public class sendMessage implements OnClickListener{
+    public class MenuArrayAdapter extends ArrayAdapter<CustomMenuItem>{
+
+        public MenuArrayAdapter(Context context, int resource) {
+            super(context, resource);
+        }
 
         @Override
-        public void onClick(View view) {
-            String message = messageBox.getText().toString();
-            messageBox.setText("");
+        public View getView(int position, View convertView, ViewGroup container) {
+            LayoutInflater inflater = LayoutInflater.from(getBaseContext());
 
-            btnSend.setEnabled(false);
+            //Inflate the layout
+            View customView = inflater.inflate(R.layout.menu_custom_listview, container, false);
 
-            if(TXChar == null || message == null || message.isEmpty())
-            {
-                return;
-            }
+            //Get references to widgets
+            ImageView itemImageView = (ImageView) customView.findViewById(R.id.ivItemImage);
+            TextView itemTextView = (TextView) customView.findViewById(R.id.ivItemWords);
 
-            TXChar.setValue(message.getBytes(Charset.forName("UTF-8")));
-            if(connectedGatt.writeCharacteristic(TXChar))
-            {
-                Toast.makeText(getBaseContext(), "Sent", Toast.LENGTH_LONG).show();
-            }
-            else
-            {
-                Toast.makeText(getBaseContext(), "Couldn't send", Toast.LENGTH_LONG).show();
-            }
+            //Get the current item
+            CustomMenuItem currentItem = getItem(position);
+
+            //Put picture into listview and text into textview
+            itemImageView.setImageDrawable(currentItem.getPicture());
+            itemTextView.setText(currentItem.getText());
+
+            //Return the layout
+            return customView;
         }
-    }*/
+    }
+
 }

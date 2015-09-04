@@ -1,7 +1,32 @@
-body {
+body 
+{
   padding-top: 50px;
+  background-color: blue;
+  /*background-image: ;*/
 }
-.starter-template {
-  padding: 40px 15px;
-  text-align: center;
+
+#mapArea
+{
+    width: 100%;
+    height:  480px;
+    border: 1px solid black;
+    margin-left:auto;
+	margin-right:auto;
+}
+
+.mainContainer
+{
+	width:800px;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:10px;
+	border:2px solid black;
+	border-radius:5px;
+	/* RGBa with 0.6 opacity */
+	background: rgba(255, 255, 255, 0.8);
+}
+
+.textPadding
+{
+	padding: 20px;
 }

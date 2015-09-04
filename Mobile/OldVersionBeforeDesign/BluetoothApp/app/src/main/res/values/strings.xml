@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Safety Map</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="try_connect">Try connect to device</string>
+    <string name="send">Send</string>
+    <string name="title_activity_view_incidents">Incidents</string>
+    <string name="btn_back">Back</string>
+    <string name="btn_view_incidents">View Incidents</string>
+    <string name="reset_db">Reset Database</string>
+    <string name="send_data">Send Data</string>
+    <string name="view_map">View Map</string>
+    <string name="title_activity_map">Map of Incidents</string>
+    <string name="month">Month:</string>
+    <string name="day">Day:</string>
+</resources>

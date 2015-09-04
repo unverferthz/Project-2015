@@ -9,14 +9,14 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Map</title>
+    <title>Home</title>
 
     <!-- Bootstrap core CSS -->
     <link href="dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="starter-template.css" rel="stylesheet">
-
+    
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -39,18 +39,19 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li class="active"><a href="#Map">Map</a></li>
-            <li><a href="#Graphs">Graphs</a></li>
+            <li><a href="index.php">Home</a></li>
+            <li><a href="map.php">Map</a></li>
+            <li class="active"><a href="">Graphs</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
 
     <div class="container">
-    <!-- Insert google map somewhere here-->
-
+        
+        <div class="mainContainer">
+          <h1>Graphs</h1>
+        </div>
     </div><!-- /.container -->
 
 
