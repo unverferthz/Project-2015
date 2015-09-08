@@ -9,13 +9,14 @@ const int MAX_DISTANCE = 200;
 const int ledPin = 4; 
 const int chipSelect = 53;
 
+long pulse,inches,cm;
 #define ADAFRUITBLE_REQ 10
 #define ADAFRUITBLE_RDY 2     // This should be an interrupt pin, on Uno thats #2 or #3
 #define ADAFRUITBLE_RST 9
 
 Adafruit_BLE_UART BTLEserial = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
 
-NewPing sensor1(13,12,MAX_DISTANCE);
+NewPing sensor1(13,11,MAX_DISTANCE);
 
 File dataFile;
 File objectCountFile;
@@ -24,7 +25,7 @@ int ledState = LOW;
 int buttonState = 0;
 int objectPassedCount = 0;
 int loopsWithNoObjectInfrontCount = 0;
-
+int loopsWithObjectInfrontCount = 0;
 boolean canCount = true;
 
 
@@ -32,7 +33,7 @@ void setup() {
    Serial.begin(9600);
    BTLEserial.setDeviceName("Ardu"); /* 7 characters max! */
    BTLEserial.begin();
-
+   
 }
 
 aci_evt_opcode_t laststatus = ACI_EVT_DISCONNECTED;
@@ -57,6 +58,7 @@ void bluetoothCheck(){
     laststatus = status;
   }
 }
+
 //Performs any actions that will happen if the button is pushed
 /*void buttonCheck(){
    aci_evt_opcode_t status = BTLEserial.getState();
@@ -99,19 +101,19 @@ void checkForCount(){
   {
     //Read in distance from sonar sensors
     int sensor1Time = sensor1.ping();
-    
+
     //Delay so sensors don't interfere with each other
          delay(20);
-    
+    Serial.print(cm);
     int sensor1Distance = sensor1Time / US_ROUNDTRIP_CM;
-    sendData(String(sensor1Distance));
+    //sendData(String(cm));
    //If distance is less than 2m
-   if (sensor1Distance > 0) 
+   if (sensor1Distance > 30 && sensor1Distance < 150) 
    {
      loopsWithNoObjectInfrontCount = 0;
-     
+     loopsWithObjectInfrontCount++;
      //Can only read 1 object until sensor reads nothing again, to avoid counting 1 object multiple times.
-     if(canCount)
+     if(canCount && loopsWithObjectInfrontCount > 4)
      { 
          objectPassedCount++;
          canCount = false;
@@ -119,12 +121,14 @@ void checkForCount(){
          Serial.println(objectPassedCount);  
          //sendData("Distance " + String(sensor1Distance) + " cm");
          sendData(String(sensor1Distance));
+         
     }
-   }//End of distance check
+   }//End of distance check 
    else
    {
      if(loopsWithNoObjectInfrontCount > 4)
      {
+       loopsWithObjectInfrontCount = 0;
        canCount = true;
        Serial.println("can count");
        loopsWithNoObjectInfrontCount = 0;
@@ -157,6 +161,7 @@ void sendData(String data) {
   
  aci_evt_opcode_t status = BTLEserial.getState();
       // Read a line from Serial
+      if (status == ACI_EVT_CONNECTED) {
       Serial.setTimeout(100); // 100 millisecond timeout
       String s = data;
       
@@ -169,7 +174,7 @@ void sendData(String data) {
 
       // write the data
       BTLEserial.write(sendbuffer, sendbuffersize);
-    
+      }
 }
 void loop()
 {  

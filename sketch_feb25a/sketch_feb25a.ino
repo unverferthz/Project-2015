@@ -83,7 +83,8 @@ void buttonCheck(){
    aci_evt_opcode_t status = BTLEserial.getState();
   //Check if button is pushed down or not
   buttonState = digitalRead(buttonPin);
-  
+  if(status == ACI_EVT_CONNECTED){
+    
   //If button is pushed and first time through loop while button is down, stops toggling if button is held down
   if(buttonState == HIGH && buttonRelease)
   {
@@ -126,7 +127,7 @@ void buttonCheck(){
       while (dataFile.available()) {
       Serial.write(dataFile.read());
       
-    }
+   // }
     dataFile.close();*/
       //Reset counter for next round of counting
       objectPassedCount = 0;
@@ -148,7 +149,7 @@ void buttonCheck(){
   {
    buttonRelease = true; 
   }
-  
+  }
 } //End buttonCheck
 
 //Writes data into the SD card if writing is enabled and sensor picks up objects
