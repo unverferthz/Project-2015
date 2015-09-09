@@ -1,8 +1,10 @@
 package bit.hillcg2.SafetyMap;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Point;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -16,8 +18,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import bit.hillcg2.SafetyMap.Managers.DBManager;
+import bit.hillcg2.SafetyMap.Managers.FTPManager;
+import bit.hillcg2.SafetyMap.Models.Incident;
 
-public class ViewIncidents extends ActionBarActivity {
+
+public class ViewIncidents extends Activity {
     private ArrayAdapter<String> listAdapter;
     private DBManager dbManager;
     private Button btnSendData;
@@ -42,13 +48,10 @@ public class ViewIncidents extends ActionBarActivity {
         Button btnBack = (Button)findViewById(R.id.btnBack);
         btnBack.setOnClickListener(new goBack());
 
-        Button btnReset = (Button)findViewById(R.id.btnReset);
-        btnReset.setOnClickListener(new resetDB());
-
         btnSendData = (Button)findViewById(R.id.btnSendData);
         btnSendData.setOnClickListener(new sendData());
 
-        listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        listAdapter = new ArrayAdapter<String>(this, R.layout.spinner_item);
         ListView incidentList = (ListView)findViewById(R.id.incidentList);
         incidentList.setAdapter(listAdapter);
 
@@ -78,8 +81,8 @@ public class ViewIncidents extends ActionBarActivity {
                 "July", "August", "September", "October", "November", "December"};
 
         //Set up adapters for the spinners
-        monthAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, months);
-        dayAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, days);
+        monthAdapter = new ArrayAdapter(this, R.layout.spinner_item, months);
+        dayAdapter = new ArrayAdapter(this, R.layout.spinner_item, days);
 
         //Set spinners adapters
         spinMonth.setAdapter(monthAdapter);
@@ -94,6 +97,13 @@ public class ViewIncidents extends ActionBarActivity {
 
         //Get instance of database
         dbManager = new DBManager(getBaseContext());
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int height = size.y;
+
+        incidentList.getLayoutParams().height = (int)Math.round(height*0.74);
+
 
         //Populate listview with existing incidents
         populateList();
@@ -246,9 +256,8 @@ public class ViewIncidents extends ActionBarActivity {
                 days[0] = "All";
             }
 
-            //TODO this is ugly, fix it
             //Update the spinner with the right amount of days for the month
-            dayAdapter = new ArrayAdapter(getBaseContext(), android.R.layout.simple_spinner_dropdown_item, days);
+            dayAdapter = new ArrayAdapter(getBaseContext(), R.layout.spinner_item, days);
             spinDay.setAdapter(dayAdapter);
             dayAdapter.notifyDataSetChanged();
 

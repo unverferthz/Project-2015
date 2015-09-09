@@ -1,4 +1,4 @@
-package bit.hillcg2.SafetyMap;
+package bit.hillcg2.SafetyMap.Models;
 
 
 public class Incident {

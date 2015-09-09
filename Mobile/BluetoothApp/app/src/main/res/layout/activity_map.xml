@@ -11,7 +11,9 @@
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="60px"
+            android:layout_marginBottom="60px">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -19,12 +21,15 @@
                 android:text="@string/month"
                 android:id="@+id/textView"
                 android:textSize="25dp"
-                android:gravity="center_vertical" />
+                android:gravity="center_vertical"
+                android:textColor="#ffffff"
+                android:layout_marginLeft="10px"/>
 
             <Spinner
                 android:layout_width="127dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/spinMonth" />
+                android:id="@+id/spinMonth"
+                android:layout_marginLeft="10px"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -32,29 +37,38 @@
                 android:text="@string/day"
                 android:id="@+id/textView2"
                 android:textSize="25dp"
-                android:gravity="center_vertical" />
+                android:gravity="center_vertical"
+                android:textColor="#ffffff"
+                android:layout_marginLeft="30px"/>
 
             <Spinner
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/spinDay" />
+                android:id="@+id/spinDay"
+                android:layout_marginLeft="10px"/>
+
         </LinearLayout>
 
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/map"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:name="com.google.android.gms.maps.MapFragment"/>
 
     </LinearLayout>
 
     <Button
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/btn_back"
         android:id="@+id/btnBackFromMap"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:background="#66BFB7"
+        android:textColor="#ffffff"
+        android:paddingBottom="10px"
+        android:paddingTop="10px"/>
 
 </RelativeLayout>

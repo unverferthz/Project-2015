@@ -1,9 +1,11 @@
-package bit.hillcg2.SafetyMap;
+package bit.hillcg2.SafetyMap.Managers;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import java.util.ArrayList;
+
+import bit.hillcg2.SafetyMap.Models.Incident;
 
 
 public class DBManager{

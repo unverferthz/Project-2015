@@ -2,7 +2,6 @@ package bit.hillcg2.SafetyMap;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.PorterDuff;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -24,6 +23,9 @@ import android.widget.ArrayAdapter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+
+import bit.hillcg2.SafetyMap.Managers.DBManager;
+import bit.hillcg2.SafetyMap.Models.Incident;
 
 
 public class MapActivity extends ActionBarActivity implements OnMapReadyCallback {
@@ -56,7 +58,6 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         //Get instances of views from layouts and set them up
         btnBackFromMap = (Button)findViewById(R.id.btnBackFromMap);
         btnBackFromMap.setOnClickListener(new backToMainScreen());
-        btnBackFromMap.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
 
         spinMonth = (Spinner)findViewById(R.id.spinMonth);
         spinDay = (Spinner)findViewById(R.id.spinDay);
@@ -84,8 +85,8 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                 "July", "August", "September", "October", "November", "December"};
 
         //Set up adapters for the spinners
-        monthAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, months);
-        dayAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, days);
+        monthAdapter = new ArrayAdapter(this, R.layout.spinner_item, months);
+        dayAdapter = new ArrayAdapter(this, R.layout.spinner_item, days);
 
         //Set spinners adapters
         spinMonth.setAdapter(monthAdapter);
@@ -259,9 +260,8 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                 days[0] = "All";
             }
 
-            //TODO this is ugly, fix it
             //Update the spinner with the right amount of days for the month
-            dayAdapter = new ArrayAdapter(getBaseContext(), android.R.layout.simple_spinner_dropdown_item, days);
+            dayAdapter = new ArrayAdapter(getBaseContext(), R.layout.spinner_item, days);
             spinDay.setAdapter(dayAdapter);
             dayAdapter.notifyDataSetChanged();
 

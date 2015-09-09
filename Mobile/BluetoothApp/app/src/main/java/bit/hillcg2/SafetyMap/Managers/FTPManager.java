@@ -1,10 +1,9 @@
-package bit.hillcg2.SafetyMap;
+package bit.hillcg2.SafetyMap.Managers;
 
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -13,18 +12,17 @@ import com.jcraft.jsch.SftpException;
 //import org.apache.commons.net.ftp.FTP;
 //import org.apache.commons.net.ftp.FTPClient;
 //import org.w3c.dom.Text;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+
+import bit.hillcg2.SafetyMap.Models.Incident;
+import bit.hillcg2.SafetyMap.ViewIncidents;
 
 public class FTPManager {
     //FTPClient mFTP;
@@ -139,7 +137,7 @@ public class FTPManager {
             }
         }
 
-        long amount = outputFile.length();
+        //long amount = outputFile.length();
 
         //Returns null file if no new data
         return outputFile;
@@ -170,11 +168,8 @@ public class FTPManager {
             //Check that there was actually a file
             if(outputFile != null)
             {
-               // String user = "unverzp1";
-                //String password = "11000712";
-
-                String user = "phone";
-                String password = "phone2015user";
+                String user = "";
+                String password = "";
 
                 //mFTP = new FTPClient();
                 jsch = new JSch();
@@ -190,8 +185,8 @@ public class FTPManager {
                     mFTP.enterLocalPassiveMode();*/
 
                     //Setup to SFTP file to server
-                    //Session session = jsch.getSession(user, "kate.ict.op.ac.nz", 46815);
-                    Session session = jsch.getSession(user, "128.199.85.75", 22);
+                    //Session session = jsch.getSession(user, "", );
+                    Session session = jsch.getSession(user, "", 22);
                     session.setConfig("PreferredAuthentications", "password");
                     session.setConfig("StrictHostKeyChecking", "no");
                     session.setPassword(password);
