@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Home</title>
+    <title>Graphs</title>
 
     <!-- Bootstrap core CSS -->
     <link href="dist/css/bootstrap.min.css" rel="stylesheet">
@@ -50,7 +50,9 @@
     <div class="container">
         
         <div class="mainContainer">
-          <h1>Graphs</h1>
+          <div class="textPadding">
+            <h1>Graphs</h1>
+          </div>
         </div>
     </div><!-- /.container -->
 

@@ -53,7 +53,80 @@
     <div class="mainContainer">
       <div class="textPadding">
         <h1>Map</h1>
+        
+        <br>
+        <form action='map.php' method='POST'>
+        <p>Month:
+          <select id='monthSelector' name='monthSelector' onchange="monthChanged(this.value);">
+            <!--Change to select current month automatically-->
+            <option value='1'>January</option>
+            <option value='2'>February</option>
+            <option value='3'>March</option>
+            <option value='4'>April</option>
+            <option value='5'>May</option>
+            <option value='6'>June</option>
+            <option value='7'>July</option>
+            <option value='8'>August</option>
+            <option value='9'>September</option>
+            <option value='10'>October</option>
+            <option value='11'>November</option>
+            <option value='12'>December</option>
+          </select>
+
+
+          Day:
+          <select id='daySelector' name='daySelector' onchange="dayChanged(this.value);">
+          </select>
+
+          &nbsp
+          &nbsp
+
+          Time between:
+          <select id='time1' name='time1' onchange="timeChanged();">
+            <option value='1'>1</option>
+            <option value='2'>2</option>
+            <option value='3'>3</option>
+            <option value='4'>4</option>
+            <option value='5'>5</option>
+            <option value='6'>6</option>
+            <option value='7'>7</option>
+            <option value='8'>8</option>
+            <option value='9'>9</option>
+            <option value='10'>10</option>
+            <option value='11'>11</option>
+            <option value='12'>12</option>
+          </select>
+
+          <select id='time1AmPm' name='time1AmPm' onchange="timeChanged();">
+            <option value='am'>am</option>
+            <option value='pm'>pm</option>
+          </select>
+
+          and
+
+          <select id='time2' name='time2' onchange="timeChanged();">
+           <option value='1'>1</option>
+            <option value='2'>2</option>
+            <option value='3'>3</option>
+            <option value='4'>4</option>
+            <option value='5'>5</option>
+            <option value='6'>6</option>
+            <option value='7'>7</option>
+            <option value='8'>8</option>
+            <option value='9'>9</option>
+            <option value='10'>10</option>
+            <option value='11'>11</option>
+            <option value='12'>12</option>
+          </select>
+
+          <select id='time2AmPm' name='time2AmPm' onchange="timeChanged();">
+            <option value='am'>am</option>
+            <option value='pm'>pm</option>
+          </select>
+        </p>
+        </form>
       </div>
+
     <!-- Insert google map somewhere here-->
     <div id="mapArea"></div>
 
@@ -67,5 +140,5 @@
     <script src="dist/js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="assets/js/ie10-viewport-bug-workaround.js"></script>
-  </body>
+  </body> 
 </html>

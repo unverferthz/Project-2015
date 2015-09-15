@@ -168,8 +168,8 @@ public class FTPManager {
             //Check that there was actually a file
             if(outputFile != null)
             {
-                String user = "";
-                String password = "";
+                String user = "phone";
+                String password = "phone2015user";
 
                 //mFTP = new FTPClient();
                 jsch = new JSch();
@@ -186,7 +186,7 @@ public class FTPManager {
 
                     //Setup to SFTP file to server
                     //Session session = jsch.getSession(user, "", );
-                    Session session = jsch.getSession(user, "", 22);
+                    Session session = jsch.getSession(user, "128.199.85.75", 22);
                     session.setConfig("PreferredAuthentications", "password");
                     session.setConfig("StrictHostKeyChecking", "no");
                     session.setPassword(password);

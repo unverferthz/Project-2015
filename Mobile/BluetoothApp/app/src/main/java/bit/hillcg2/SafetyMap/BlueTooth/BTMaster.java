@@ -84,7 +84,6 @@ public class BTMaster {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void deviceFound(BluetoothDevice device){
         stopScans();
         mainActivity.connectedToBT();
@@ -92,9 +91,11 @@ public class BTMaster {
 
         try
         {
-            int bluetoothType = device.getType();
+            //int bluetoothType = device.getType();
+            String name = device.getName();
 
-            if (bluetoothType == BluetoothDevice.DEVICE_TYPE_LE)
+            //if (bluetoothType == BluetoothDevice.DEVICE_TYPE_LE)
+            if(name.equals("Ardu"))
             {
                 btleManager.connectToDevice(device);
                 btManager.closeConnections();

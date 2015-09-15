@@ -102,9 +102,15 @@ public class BTLEManager {
         }
     }
 
-    public void connectToDevice(BluetoothDevice device)
+    public void connectToDevice(final BluetoothDevice device)
     {
-        connectedGatt = device.connectGatt(mainActivity.getApplicationContext(), false, mGattCallback);
+        mainActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                connectedGatt = device.connectGatt(mainActivity.getApplicationContext(), false, mGattCallback);
+            }
+        });
+
     }
 
     public void stopScan(){

@@ -251,7 +251,7 @@ public class MainActivity extends Activity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
+                //Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
             }
         });
     }
