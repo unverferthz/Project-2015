@@ -4,12 +4,11 @@
  
 
 //Function called from html when dropdown is changed
-function monthChanged(selectedMonth){
+function month1Changed(selectedMonth){
   var currentYear = new Date().getFullYear()  
   var numDays = daysInMonth(selectedMonth,currentYear);
 
-
-  var daySelector = document.getElementById("daySelector");
+  var daySelector = document.getElementById("daySelector1");
 
   var numOptions = daySelector.length;
 
@@ -18,13 +17,6 @@ function monthChanged(selectedMonth){
   {
     daySelector.remove(0);
   }
-  
-
-  var newAllOption = document.createElement("option");
-  newAllOption.value = "All";
-  var allTextNode = document.createTextNode("All");
-  newAllOption.appendChild(allTextNode);
-  daySelector.appendChild(newAllOption);
 
   //Loop over all the number of days filling up the list
   for(var i=0; i < numDays; i++)
@@ -38,16 +30,102 @@ function monthChanged(selectedMonth){
 
     daySelector.appendChild(newOption);
   }
-  
+
+
+  updateMonth2(selectedMonth);
+}
+
+function updateMonth2(selectedMonth){
+  var month2Selector = document.getElementById("month2Selector");
+  var numOptions = month2Selector.length;
+
+  //Remove all of the children from the daySelector
+  for(var i=0; i < numOptions; i++)
+  {
+    month2Selector.remove(0);
+  }
+
+  if(selectedMonth != 12)
+  {
+    //Offset allows the dropdown to include the same month as what was selected in the top dropdown
+    var selectedMonthOffset = selectedMonth - 1;
+
+    var monthsArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    var monthsLeft = 12 - selectedMonthOffset;
+
+    var optionsArray = new Array(monthsLeft);
+
+    var optionsArrayIndex = monthsLeft - 1;
+
+    for(var i=12; i > selectedMonthOffset; i--)
+    {
+      var newOption = document.createElement("option");
+      newOption.value = i;
+      var textNode = document.createTextNode(monthsArray[i - 1]);
+      newOption.appendChild(textNode);
+
+      optionsArray[optionsArrayIndex] = newOption;
+      optionsArrayIndex--;
+    }
+
+    for(var i=0; i < optionsArray.length; i++)
+    {
+      month2Selector.appendChild(optionsArray[i]);
+    }
+  }
+  else
+  {
+    var newOption = document.createElement("option");
+    newOption.value = i;
+    var textNode = document.createTextNode("December");
+    newOption.appendChild(textNode);
+
+    month2Selector.appendChild(newOption);
+  }
+
+  month2Changed(selectedMonth, false);
+}
+
+function month2Changed(selectedMonth, cameFromForm){
+  var currentYear = new Date().getFullYear()  
+  var numDays = daysInMonth(selectedMonth,currentYear);
+
+  var daySelector = document.getElementById("daySelector2");
+
+  var numOptions = daySelector.length;
+
+  //Remove all of the children from the daySelector
+  for(var i=0; i < numOptions; i++)
+  {
+    daySelector.remove(0);
+  }
+
+  //Loop over all the number of days filling up the list
+  for(var i=0; i < numDays; i++)
+  {
+    var dayNumber = i+1;
+
+    var newOption = document.createElement("option");
+    newOption.value = dayNumber;
+    var textNode = document.createTextNode(dayNumber);
+    newOption.appendChild(textNode);
+
+    daySelector.appendChild(newOption);
+  }
+
+  if(!cameFromForm)
+  {
+    daySelector.value = numDays;
+  }
 }
 
 function setCurrentMonth(){
   var currentMonth = new Date().getMonth() + 1;
 
-  var element = document.getElementById('monthSelector');
+  var element = document.getElementById('month1Selector');
   element.value = currentMonth;
 
-  monthChanged(currentMonth);
+  month1Changed(currentMonth);
 }
 
 //Month is 1 based
@@ -97,8 +175,8 @@ function init() {
     var time2 = document.getElementById('time2');
     time2.value = 12;
 
-    //ajaxRequest.open("get", "get-data.php", true);
-    //ajaxRequest.send();
+    ajaxRequest.open("get", "get-data.php", true);
+    ajaxRequest.send();
 }
 
 function addMarker(latLng, incidentInfo) {
