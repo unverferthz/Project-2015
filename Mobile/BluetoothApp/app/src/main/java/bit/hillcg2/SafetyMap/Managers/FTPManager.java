@@ -48,8 +48,8 @@ public class FTPManager {
 
     //Creates a text file from the sqlite database incidents and returns it as a text file
     private File createFileToSend(){
-        //ArrayList<Incident> allIncidents = dbManager.getNewIncidents();
-        ArrayList<Incident> allIncidents = dbManager.getAllIncidents();
+        ArrayList<Incident> allIncidents = dbManager.getNewIncidents();
+        //ArrayList<Incident> allIncidents = dbManager.getAllIncidents();
 
         File outputFile = null;
 
