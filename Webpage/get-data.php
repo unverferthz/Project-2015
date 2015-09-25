@@ -1,4 +1,17 @@
 <?php
+
+//insert into tblTesting(testDate) values(STR_TO_DATE('19/04/2015', '%d/%m/%Y'));
+
+$firstMonth = strip_tags($_GET['firstMonth']);
+$firstDay = strip_tags($_GET['firstDay']);
+
+$secondMonth = strip_tags($_GET['secondMonth']);
+$secondDay = strip_tags($_GET['secondDay']);
+
+$firstYear = strip_tags($_GET['firstYear']);
+$secondYear = strip_tags($_GET['secondYear']);
+
+
 $host = "localhost";
 $userMS = "root";
 $passwordMS = "2015projectcz";
@@ -9,7 +22,9 @@ $database = "cyclingIncidents";
 $db = mysql_select_db($database,$connection) or die("Couldn't select database");
 
 //Pull all data out of incident table
-$getIncidentQuery = "SELECT * FROM tblIncidents";
+//$getIncidentQuery = "SELECT * FROM tblIncidents";
+//SELECT * FROM tblTesting WHERE testDate BETWEEN '2015-4-13' AND '2015-4-17';
+$getIncidentQuery = "SELECT * FROM tblIncidents WHERE date BETWEEN '$firstYear-$firstMonth-$firstDay' AND '$secondYear-$secondMonth-$secondDay'";
 $result = mysql_query($getIncidentQuery);
 
 //Check if there is any data

@@ -39,7 +39,7 @@
             <span class="icon-bar"></span>
           </button>
           <a href="index.php">
-            <img id="logo" src="../pictures/Roximal_logo.png" width=90px height=35px />
+            <img id="logo" src="/pictures/Roximal_logo.png" width=90px height=35px />
           </a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
@@ -74,13 +74,13 @@
               <option value='12'>December</option>
             </select>
 
-            <select id='daySelector1' name='daySelector' onchange="dayChanged(this.value);">
+            <select id='day1Selector' name='daySelector' onchange="dayChanged();">
             </select>
           </p>
           <p class='alignRight'>
               and
 
-            <select id='month2Selector' name='monthSelector' onchange="month2Changed(this.value, true);">
+            <select id='month2Selector' name='monthSelector' onchange="month2Changed(this.value);">
               <!--Change to select current month automatically-->
               <option value='1'>January</option>
               <option value='2'>February</option>
@@ -96,7 +96,7 @@
               <option value='12'>December</option>
             </select>
 
-            <select id='daySelector2' name='daySelector' onchange="dayChanged(this.value);">
+            <select id='day2Selector' name='daySelector' onchange="dayChanged();">
             </select>
           </p>
         </div>
@@ -119,8 +119,8 @@
             </select>
 
             <select id='time1AmPm' name='time1AmPm' onchange="timeChanged();">
-              <option value='am'>am</option>
-              <option value='pm'>pm</option>
+              <option value='1'>am</option>
+              <option value='2'>pm</option>
             </select>
           </p>
           <p class='alignRight'>
@@ -142,8 +142,8 @@
             </select>
 
             <select id='time2AmPm' name='time2AmPm' onchange="timeChanged();">
-              <option value='am'>am</option>
-              <option value='pm'>pm</option>
+              <option value='1'>am</option>
+              <option value='2'>pm</option>
             </select>
 
           </p>

@@ -34,7 +34,7 @@ public class IncidentManager {
         String time = df.format((Calendar.getInstance().getTime()));
 
         //Changed from ("d/MM/yyyy")
-        df = new SimpleDateFormat("d/M/yyyy");
+        df = new SimpleDateFormat("yyyy/M/d");
         String date = df.format((Calendar.getInstance().getTime()));
 
         //Get the most recent location value
