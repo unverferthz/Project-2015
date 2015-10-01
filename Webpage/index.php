@@ -16,6 +16,16 @@
 
     <!-- Custom styles for this template -->
     <link href="styleSheet.css" rel="stylesheet">
+      
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    
+      ga('create', 'UA-68255509-1', 'auto');
+      ga('send', 'pageview');
+    </script>
     
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -25,7 +35,6 @@
   </head>
 
   <body>
-
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
@@ -42,7 +51,10 @@
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li class="active"><a href="">Home</a></li>
-            <li><a href="map.php">Map</a></li>
+	    <li><a href="map.php">Map</a></li>
+	    <li><a href="howItWorks.php">How it works</a></li>
+	    <li><a href="youCanHelp.php">You can help - Voluteering</a>
+	    <li><a href="contact.php">Contact us</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -53,51 +65,20 @@
         <div class="mainContainer">
           <div class="textPadding">
             <h1>Welcome to Roximal</h1>
-            <p>Roximal works by having cyclists wear a device while our cycling. The device will measure the distance between
-              the cyclist and vehicle. If the vehicle is within 1.5 meters then the incident is recorded and the data
-              can be seen here.</p>
+            <p>
+	    Dunedin roads are notoriously bad and dangerous for cyclists, particularly bad in some areas.
+            What we are trying to do is raise awareness of these dangerous areas.</p>
+
+            <p>You can view the data that we have collected by going to the map tab at the top or by
+            clicking <a href="map.php">here</a></p><br/>
+
+            <p>If you would like a brief explanation on how the system works you
+            can go <a href="howItWorks.php">here</a></p><br/>
+
+            <p>If you would like to help us out you can see some
+            information <a href="youCanHelp.php">here</a></p>
           </div>
         </div>
-
-        <!--
-        <?php
-        $host = "localhost";
-        $userMS = "root";
-        $passwordMS = "2015projectcz";
-
-        $connection = mysql_connect($host,$userMS,$passwordMS) or die("Couldn't connect:".mysql_error());
-
-        $database = "cyclingIncidents";
-        $db = mysql_select_db($database,$connection) or die("Couldn't select database");
-
-        //Pull all data out of incident table
-        $getIncidentQuery = "SELECT * FROM tblIncidents";
-        $result = mysql_query($getIncidentQuery);
-        
-        //Check if there is any data
-        if(mysql_num_rows($result) > 0)
-        {
-            while($row = mysql_fetch_row($result))
-            {
-              $id = $row[0];
-              $distance = $row[1];
-              $time = $row[2];
-              $date = $row[3];
-              $lat = $row[4];
-              $lng = $row[5];
-
-              echo("ID: $id");echo("<br/>");
-              echo("Distance: $distance");echo("<br/>");
-              echo("Time: $time");echo("<br/>");
-              echo("Date: $date");echo("<br/>");
-              echo("Latitude: $lat");echo("<br/>");
-              echo("Longitude: $lng");echo("<br/>");
-
-            }
-        }
-        mysql_free_result($result);
-        ?>-->
-
     </div><!-- /.container -->
 
 
