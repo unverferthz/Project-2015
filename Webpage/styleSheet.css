@@ -6,66 +6,53 @@ body
 
 .mainContainer
 {
-  width:1000px;
-  margin-left:auto;
-  margin-right:auto;
-  border-left: 2px solid black;
-  border-right: 2px solid black;
-  border-bottom: 2px solid black;
-  /* RGBa with 0.8 opacity */
-  background: rgba(255, 255, 255, 0.8);
+	width:1000px;
+	height: 100%;
+	margin-left:auto;
+	margin-right:auto;
+	/*margin-top:10px;*/
+	/*border:2px solid black;*/
+	border-left: 2px solid black;
+	border-right: 2px solid black;
+	border-bottom: 2px solid black;
+	/* RGBa with 0.8 opacity */
+	background: rgba(255, 255, 255, 0.8);
 }
 
 #mapArea
 {
-  width: 100%;
-  height:  600px;
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
-  margin-left:auto;
-  margin-right:auto;
+    width: 100%;
+    height:  600px;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    margin-left:auto;
+	margin-right:auto;
 }
 
 #logo
 {
-  margin-top: 10px;
+	margin-top: 10px;
 }
 
 #leftSortingBox
 {
-  width: 250px;
-  float: left;
+	width = 250px;
+	float: left;
 }
 
-.leftFloat
+#rightSortingBox
 {
-  margin-left: 30px;
-  width: 250px;
-  float: left;
-}
-
-.widePictureBox
-{
-  margin-left: 30px;
-  width: 400px;
-  float: left;
-}
-
-.picBorder{
-  border: 1px solid black;
-}
-
-.clear {
-  clear:both;
-  line-height:0;
+	margin-left: 30px;
+	width = 250px;
+	float: left;
 }
 
 .alignRight
 {
-  text-align: right;
+	text-align: right;
 }
 
 .textPadding
 {
-  padding: 20px;
+	padding: 20px;
 }

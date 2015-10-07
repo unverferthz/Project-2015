@@ -76,9 +76,6 @@ public class DBManager{
         for(int i=0; i < recordCount; i++)
         {
             //Get all of the values to create an incident
-            int idIndex = recordSet.getColumnIndex("incidentID");
-            int id = recordSet.getInt(idIndex);
-
             int distanceIndex = recordSet.getColumnIndex("distance");
             int distance = recordSet.getInt(distanceIndex);
 
@@ -95,7 +92,7 @@ public class DBManager{
             String lng = recordSet.getString(lngIndex);
 
             //Create the incident and add it into array
-            Incident currIncident = new Incident(id, distance, time, date, lat, lng);
+            Incident currIncident = new Incident(distance, time, date, lat, lng);
             incidentArray.add(currIncident);
 
             //Get next record
@@ -154,7 +151,7 @@ public class DBManager{
                 String lng = recordSet.getString(lngIndex);
 
                 //Create the incident and add it into array
-                Incident currIncident = new Incident(id, distance, time, date, lat, lng);
+                Incident currIncident = new Incident(distance, time, date, lat, lng);
                 incidentArray.add(currIncident);
             }
 
@@ -206,58 +203,6 @@ public class DBManager{
         }
 
         //Close connection to DB
-        incidentDB.close();
-    }
-
-    public Incident getIncident(int incidentId){
-        //Reconnect to database
-        incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
-
-        //Make query and execute to get all records
-        String selectQuery = "SELECT * FROM tblIncident WHERE incidentID = " + incidentId;
-        Cursor recordSet = incidentDB.rawQuery(selectQuery, null);
-
-        //Set up to loop
-        recordSet.moveToFirst();
-
-        int recordCount = recordSet.getCount();
-        Incident inc = null;
-
-        for(int i=0; i < recordCount; i++)
-        {
-            //Get all of the values to create an incident
-            int idIndex = recordSet.getColumnIndex("incidentID");
-            int id = recordSet.getInt(idIndex);
-
-            //Get all of the values to create an incident
-            int distanceIndex = recordSet.getColumnIndex("distance");
-            int distance = recordSet.getInt(distanceIndex);
-
-            int timeIndex = recordSet.getColumnIndex("time");
-            String time = recordSet.getString(timeIndex);
-
-            int dateIndex = recordSet.getColumnIndex("date");
-            String date = recordSet.getString(dateIndex);
-
-            int latIndex = recordSet.getColumnIndex("latitude");
-            String lat = recordSet.getString(latIndex);
-
-            int lngIndex = recordSet.getColumnIndex("longitude");
-            String lng = recordSet.getString(lngIndex);
-
-            //Create the incident and add it into array
-            inc = new Incident(id, distance, time, date, lat, lng);
-        }
-
-        return inc;
-    }
-
-    public void deleteIncident(int incidentId){
-        incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
-
-        String deleteQuery = "DELETE FROM tblIncident WHERE incidentID = " + incidentId;
-
-        incidentDB.execSQL(deleteQuery);
         incidentDB.close();
     }
 

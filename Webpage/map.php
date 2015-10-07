@@ -16,15 +16,7 @@
 
     <!-- Custom styles for this template -->
     <link href="styleSheet.css" rel="stylesheet">
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-    
-      ga('create', 'UA-68255509-1', 'auto');
-      ga('send', 'pageview');
-    </script>
+
     <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyBWLnRuuzxeiVoTpRDVFXewSdHgVTbOHuY&sensor=false"></script>
     <script src="mapScript.js"></script>
 
@@ -53,10 +45,7 @@
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li><a href="index.php">Home</a></li>
-	    <li class="active"><a href="">Map</a></li>
-	    <li><a href="howItWorks.php">How it works</a></li>
-	    <li><a href="youCanHelp.php">You can help -Volunteering</a>
-	    <li><a href="contact.php">Contact us</a></li>
+            <li class="active"><a href="">Map</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -65,13 +54,7 @@
     <div class="mainContainer">
       <div class="textPadding">
         <h1>Map</h1>
-        <br/>
-        <p>Here you can see all the data that has been collected by cyclists so far. Each marker is where an vehicle/object has
-        gotten too close to a cyclist. You can click the markers for more details. The drop boxes can be used to sort the incidents.</p>
-        <p>The month dropdowns will show all the information between the selected months/days.</p>
-        <p>The time dropdown will show the information between the two times and within the selected months/days. The time dropdowns
-        work by showing all the incidents between the first and second dropdown boxes.</p>
-        <br/>
+        <br>
         <form action='map.php' method='POST'>
         <div id='leftSortingBox'>
           <p class='alignRight'>Date between:
@@ -117,7 +100,7 @@
             </select>
           </p>
         </div>
-        <div class="leftFloat">
+        <div id='rightSortingBox'>
           <p class='alignRight'>
             Time between:
             <select id='time1' name='time1' onchange="timeChanged();">
@@ -132,12 +115,12 @@
               <option value='9'>9</option>
               <option value='10'>10</option>
               <option value='11'>11</option>
-              <option value='0'>12</option>
+              <option value='12'>12</option>
             </select>
 
             <select id='time1AmPm' name='time1AmPm' onchange="timeChanged();">
-              <option value='AM'>am</option>
-              <option value='PM'>pm</option>
+              <option value='1'>am</option>
+              <option value='2'>pm</option>
             </select>
           </p>
           <p class='alignRight'>
@@ -155,17 +138,15 @@
               <option value='9'>9</option>
               <option value='10'>10</option>
               <option value='11'>11</option>
-              <option value='0'>12</option>
+              <option value='12'>12</option>
             </select>
 
             <select id='time2AmPm' name='time2AmPm' onchange="timeChanged();">
-              <option value='AM'>am</option>
-              <option value='PM'>pm</option>
+              <option value='1'>am</option>
+              <option value='2'>pm</option>
             </select>
+
           </p>
-        </div>
-        <div class="leftFloat">
-          <p id="sortStatus">Showing all incidents</p>
         </div>
         </form>
       </div>

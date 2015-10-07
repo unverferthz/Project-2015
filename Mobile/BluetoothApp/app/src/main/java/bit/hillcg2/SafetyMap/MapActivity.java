@@ -1,12 +1,11 @@
 package bit.hillcg2.SafetyMap;
 
-import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -19,17 +18,17 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.widget.ArrayAdapter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+
 import bit.hillcg2.SafetyMap.Managers.DBManager;
 import bit.hillcg2.SafetyMap.Models.Incident;
 
 
-public class MapActivity extends Activity implements OnMapReadyCallback {
+public class MapActivity extends ActionBarActivity implements OnMapReadyCallback {
 
     private MapFragment mapFragment;
     private GoogleMap map;
@@ -44,9 +43,6 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
     private Spinner spinDay;
     private ArrayAdapter monthAdapter;
     private ArrayAdapter dayAdapter;
-    private ArrayList<Marker> markerList;
-    private ArrayList<Incident> displayedIncidents;
-    private IncidentInfoDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,9 +61,6 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
 
         spinMonth = (Spinner)findViewById(R.id.spinMonth);
         spinDay = (Spinner)findViewById(R.id.spinDay);
-
-        markerList = new ArrayList<Marker>();
-        displayedIncidents = new ArrayList<Incident>();
 
         Calendar cal = Calendar.getInstance();
 
@@ -124,8 +117,6 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         //Set map to global so other methods can use it
         map = googleMap;
 
-        map.setOnMarkerClickListener(new markerClickHandler());
-
         //Move map to current location
         Location currentLocation = locationManager.getLastKnownLocation(providerName);
 
@@ -175,14 +166,13 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
                 //Check that the incident has a GPS location
                 if (!lat.equals("null") && !lng.equals("null"))
                 {
-                    displayedIncidents.add(i);
                     //Turn the gps locations into one the map can work with
                     LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
 
-                    //.title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date)
                     //Add marker for incident onto the map
-                    markerList.add(map.addMarker(new MarkerOptions()
-                            .position(incidentPos)));
+                    map.addMarker(new MarkerOptions()
+                            .position(incidentPos)
+                            .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
                 }
             }
             //If all days in a specific month selected
@@ -198,14 +188,13 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
                 //Check that the incident has a GPS location
                 if (!lat.equals("null") && !lng.equals("null"))
                 {
-                    displayedIncidents.add(i);
                     //Turn the gps locations into one the map can work with
                     LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
 
-                    //.title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date)
                     //Add marker for incident onto the map
-                    markerList.add(map.addMarker(new MarkerOptions()
-                            .position(incidentPos)));
+                    map.addMarker(new MarkerOptions()
+                            .position(incidentPos)
+                            .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
                 }
             }
             //If month and a day are selected
@@ -221,14 +210,13 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
                 //Check that the incident has a GPS location
                 if (!lat.equals("null") && !lng.equals("null"))
                 {
-                    displayedIncidents.add(i);
                     //Turn the gps locations into one the map can work with
                     LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
 
-                    //.title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date)
                     //Add marker for incident onto the map
-                    markerList.add(map.addMarker(new MarkerOptions()
-                            .position(incidentPos)));
+                    map.addMarker(new MarkerOptions()
+                            .position(incidentPos)
+                            .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
                 }
             }
         }
@@ -300,38 +288,6 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         public void onNothingSelected(AdapterView<?> adapterView) {
 
         }
-    }
-
-    public class markerClickHandler implements GoogleMap.OnMarkerClickListener{
-
-        @Override
-        public boolean onMarkerClick(Marker marker) {
-            FragmentManager fm = getFragmentManager();
-            dialog = new IncidentInfoDialog();
-
-            int markerIndex = markerList.lastIndexOf(marker);
-            Incident i = displayedIncidents.get(markerIndex);
-            dialog.setIncident(i);
-
-            dialog.show(fm, "Marker Info");
-            return false;
-        }
-    }
-
-    public void closeFragment(){
-        dialog.dismiss();
-    }
-
-    public void deleteIncident(Incident i){
-        dbManager.deleteIncident(i.getId());
-
-        int index = displayedIncidents.indexOf(i);
-        Marker m = markerList.get(index);
-        m.remove();
-        markerList.remove(index);
-        displayedIncidents.remove(index);
-
-        dialog.dismiss();
     }
 
     //Handler for back button pressed
