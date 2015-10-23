@@ -319,6 +319,8 @@ public class BTManager {
                     {
                         if (deviceName.equals("BLuey"))
                             btMaster.deviceFound(device);
+                        else if(deviceName.equals("BLuey-184C"))
+                            btMaster.deviceFound(device);
                     }
                 }
             }
