@@ -9,14 +9,13 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Home</title>
+    <title>You can help</title>
 
     <!-- Bootstrap core CSS -->
     <link href="dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="styleSheet.css" rel="stylesheet">
-      
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -26,15 +25,18 @@
       ga('create', 'UA-68255509-1', 'auto');
       ga('send', 'pageview');
     </script>
-    
+
+    <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyBWLnRuuzxeiVoTpRDVFXewSdHgVTbOHuY&sensor=false"></script>
+    <script src="mapScript.js"></script>
+
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
   </head>
+ <body>
 
-  <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
@@ -50,10 +52,10 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="">Home</a></li>
-	    <li><a href="map.php">Map</a></li>
+            <li><a href="index.php">Home</a></li>
+            <li><a href="map.php">Map</a></li>
 	    <li><a href="howItWorks.php">How it works</a></li>
-	    <li><a href="youCanHelp.php">You can help - Voluteering</a>
+	    <li class="active"><a href="">You can help - Volunteering</a></li>
 	    <li><a href="contact.php">Contact us</a></li>
           </ul>
         </div><!--/.nav-collapse -->
@@ -61,22 +63,24 @@
     </nav>
 
     <div class="container">
-        
+
         <div class="mainContainer">
-          <div class="textPadding">
-            <h1>Welcome to Roximal</h1>
-            <p>
-	    Dunedin roads are notoriously bad and dangerous for cyclists, particularly bad in some areas.
-            What we are trying to do is raise awareness of these dangerous areas.</p>
-
-            <p>You can view the data that we have collected by going to the map tab at the top or by
-            clicking <a href="map.php">here</a></p><br/>
-
-            <p>If you would like a brief explanation on how the system works you
-            can go <a href="howItWorks.php">here</a></p><br/>
-
-            <p>If you would like to help us out you can see some
-            information <a href="youCanHelp.php">here</a></p>
+	  <div class="textPadding">
+	    <h1>You can help us!</h1>
+	    <br/>
+	    <p>We need volunteers to help us gather data, to help prove how dangerous areas of Dunedin can be.</p>
+	    <br/>
+	    <h4>What's required</h4>
+	    <ul>
+	      <li>We need road cyclists</li>
+	      <li>Preferably have an android phone(we can supply one for the duration of our testing if not)</li>
+	      <li>We need you to ride you bike in the way you normally would. Following all the usual road rules</li>
+	      <li>Our device isn't waterproof so we ask that you don't use it in the rain</li>
+	    </ul>
+	    <br/>
+	    <p>If our project interests you and you would like to help, you can view our contact info in
+	    the <a href="contact.php">contact page.</a></p>
+	    
           </div>
         </div>
     </div><!-- /.container -->
@@ -87,7 +91,8 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="dist/js/bootstrap.min.js"></script>
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+ <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="assets/js/ie10-viewport-bug-workaround.js"></script>
   </body>
 </html>
+

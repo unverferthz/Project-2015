@@ -18,11 +18,12 @@ public class IncidentManager {
         this.mainActivity = mainActivity;
     }
 
-    public void incidentRecieved(String newDistance){
+    public void incidentReceived(String newDistance){
         Incident newIncident = createIncident(newDistance);
 
         //Insert value into DB
-        dbManager.insertIncident(newIncident);
+        if(newIncident != null)
+            dbManager.insertIncident(newIncident);
     }
 
     //Pre-condition: Accepts a distance value as a string
@@ -52,8 +53,7 @@ public class IncidentManager {
         //Location is empty but incidents still occurred
         else
         {
-            lat = "null";
-            lng = "null";
+            return null;
         }
 
         //Make an incident with all the values

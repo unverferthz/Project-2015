@@ -1,11 +1,9 @@
 package bit.hillcg2.SafetyMap.BlueTooth;
 
 
-import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.os.Build;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -113,6 +111,6 @@ public class BTMaster {
     }
 
     public void messageRecieved(String message){
-        mainActivity.messageRecieved(message);
+        mainActivity.messageReceived(message);
     }
 }

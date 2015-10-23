@@ -3,6 +3,7 @@ var mapObject;
 var markersArray = [];
 var ajaxRequest = new XMLHttpRequest();
 var currIncidents = [];
+var loadNewIncidents;
  
 
 function incident(lat, lng, distance, date, time)
@@ -42,8 +43,8 @@ function month1Changed(selectedMonth){
 
     daySelector.appendChild(newOption);
   }
-
-  updateMapWithNewValues();
+  
+  loadNewIncidents = true;
 }
 
 
@@ -76,16 +77,14 @@ function month2Changed(selectedMonth){
   }
 
   daySelector.value = numDays;
-
-  updateMapWithNewValues();
+  loadNewIncidents = true;
 }
 
-function dayChanged(){
-  updateMapWithNewValues();
+function dayChanged() {
+  loadNewIncidents = true;
 }
 
-function timeChanged(){
-
+function timeCheck(){
   clearMarkers();
 
   var time1Element = document.getElementById('time1');
@@ -93,92 +92,80 @@ function timeChanged(){
   var time2Element = document.getElementById('time2');
   var time2AmPmElement = document.getElementById('time2AmPm');
 
-  var time1 = time1Element.value;
-  var time1AmPm =  parseInt(time1AmPmElement.value);
-  var time2 = time2Element.value;
-  var time2AmPm = parseInt(time2AmPmElement.value);
-
+  var time1 = parseInt(time1Element.value);
+  var time1AmPm =  time1AmPmElement.value;
+  var time2 = parseInt(time2Element.value);
+  var time2AmPm = time2AmPmElement.value;
+  
+  if (time1AmPm == "PM"){
+    time1 += 12
+  }
+  if (time2AmPm == "PM") {
+    time2 += 12;
+  }
+  
+  //new Date(year, month, day, hours, minutes, seconds, milliseconds);
+  var time1DateObject = new Date(2015, 1, 1,time1, 0, 0, 0);
+  var time2DateObject = new Date(2015, 1, 1,time2, 0, 0, 0);
+  
+  if (time1DateObject > time2DateObject) {
+    var newDay = 2;
+    time2DateObject = new Date(2015, 1, newDay, time2, 0, 0, 0);
+  }
+  
   for(var i=0; i < currIncidents.length; i++)
   {
     var currIncident = currIncidents[i];
     var incidentTime = currIncident.time;
-
+    
     var splitTimeAndAmPm = incidentTime.split(" ");
 
     var incidentAmPm = splitTimeAndAmPm[1];
     var timeSplit = splitTimeAndAmPm[0].split(":");
     var incidentHour = parseInt(timeSplit[0]);
     
-    //new Date(year, month, day, hours, minutes, seconds, milliseconds);
+    var dateSplit = currIncident.date.split("-");
+    var year = dateSplit[0];
+    var month = dateSplit[1];
+    var day = dateSplit[2];
     
+    var newDateFormat = day + "-" + month + "-" + year;
     
-
-
-    var incidentLocation = new google.maps.LatLng(currIncident.lat, currIncident.lng);
-
-
-    /***************           Still need to add in incident AM/PM use          ****************/
-    if(time1AmPm == time2AmPm)
+    if (incidentAmPm == "PM")
     {
-      //check time
-      if(time1 == time2)
-      {
-        //show everything
-        addMarker(incidentLocation, "Distance: " + currIncident.distance + "  Time: " + currIncident.time + "  Date: " + currIncident.date);
-      }
-      else if(time1 > time2)
-      {
-        if(time2 == 12)
-        {
-          time2 = 0;
-        }
-
-        //check if incident time is smaller than time1 and higher than time2
-        if(incidentHour <= time1 && incidentHour >= time2)
-        {
-          //show marker
-          addMarker(incidentLocation, "Distance: " + currIncident.distance + "  Time: " + currIncident.time + "  Date: " + currIncident.date);
-        }
-      }
-      else
-      {
-        if(time1 == 12)
-        {
-          time1 = 0;
-        }
-
-        if(incidentHour >= time1 && incidentHour <= time2)
-        {
-          //show marker
-          addMarker(incidentLocation, "Distance: " + currIncident.distance + "  Time: " + currIncident.time + "  Date: " + currIncident.date);
-        }
-      }
-    }
-    //time1 is greater
-    else if(time1AmPm > time2AmPm)
-    {
-      if(time2 == 12)
-        {
-          time2 = 0;
-        }
-
-      if(incidentHour <= time1 && incidentHour >= time2)
-      {
-        //show marker
-        addMarker(incidentLocation, "Distance: " + currIncident.distance + "  Time: " + currIncident.time + "  Date: " + currIncident.date);
-      }
+      incidentHour += 12;
     }
     else
     {
-      if(time1 == 12)
-      {
-        time1 = 0;
+      if (incidentHour == 12) {
+        incidentHour = 0;
       }
-
-      if(incidentHour >= time1 && incidentHour <= time2)
+    }
+    
+    var incidentDateObject;
+    
+    //Make incident date object
+    if (incidentHour < time1 && time1DateObject > time2DateObject) {
+      //new Date(year, month, day, hours, minutes, seconds, milliseconds);
+      incidentDateObject = new Date(2015, 1, 2, incidentHour, 0, 0, 0);
+    }
+    else{
+      incidentDateObject = new Date(2015, 1, 1, incidentHour, 0, 0, 0);
+    }
+    
+    var incidentLocation = new google.maps.LatLng(currIncident.lat, currIncident.lng);
+    
+    //Showing all, using time instead of the date object because it wasn't returning true for same dates
+    if (time1 == time2) {
+      if(distanceCheck(currIncident.distance))
       {
-        //show marker
-        addMarker(incidentLocation, "Distance: " + currIncident.distance + "  Time: " + currIncident.time + "  Date: " + currIncident.date);
+        addMarker(incidentLocation, "Distance: " + currIncident.distance + "cm" + "  Time: " + currIncident.time + "  Date: " + newDateFormat);
+      }
+    }
+    else if (incidentDateObject >= time1DateObject && incidentDateObject < time2DateObject) {
+      if(distanceCheck(currIncident.distance))
+      {
+        addMarker(incidentLocation, "Distance: " + currIncident.distance + "cm" + "  Time: " + currIncident.time + "  Date: " + newDateFormat);
       }
     }
   }
@@ -190,8 +177,8 @@ function updateMapWithNewValues(){
   var day1Selector = document.getElementById('day1Selector');
   var day2Selector = document.getElementById('day2Selector');
 
-  var month1 = month1Selector.value;
-  var month2 = month2Selector.value;
+  var month1 = parseInt(month1Selector.value);
+  var month2 = parseInt(month2Selector.value);
   var day1 = day1Selector.value;
   var day2 = day2Selector.value;
 
@@ -211,7 +198,7 @@ function updateMapWithNewValues(){
 
   var currentYear = new Date().getFullYear();
 
-  if(firstDateFirst)
+   if(firstDateFirst)
   {
     loadNewMarkers(month1, day1, month2, day2, currentYear, currentYear);
   }
@@ -259,35 +246,18 @@ function daysInMonth(month,year) {
       var currTime = incidents[i]["time"];
       var currDate = incidents[i]["date"];
 
-       /*currIncidents.push({
-        lat = currLat,
-        lng = currLng,
-        distance = currDistance,
-        date = currDate,
-        time = currTime
-       });*/
-
       if(currLat != "null" && currLng != "null")
       {
-        currIncidents.push(new incident(currLat, currLng, currDistance, currDate, currTime));
-        addMarker(incidentLocation, "Distance: " + currDistance + "  Time: " + currTime + "  Date: " + currDate);
+	currIncidents.push(new incident(currLat, currLng, currDistance, currDate, currTime));
       }
-
-      //alert(currLat);
-      //alert(currIncidents[0].lat);
-
-       /*alert(currIncidents[0].latitude);
-       alert(currIncidents[0].latitude);
-       alert(currIncidents[0].latitude);
-       alert(currIncidents[0].latitude);*/
     }
+    
+    //time check
+    timeCheck();
  }
 
 //Add marker onto map
 function addMarker(latLng, incidentInfo) {
-
-  //var distanceInMeters = distance / 100;
-
   var infowindow = new google.maps.InfoWindow({
     content: incidentInfo
   });
@@ -303,18 +273,45 @@ function addMarker(latLng, incidentInfo) {
       infowindow.open(mapObject,markerObject);
     });
 
-  /*var circle = new google.maps.Circle({
-  map: mapObject,
-  radius: distanceInMeters,
-  fillColor: '#AA0000'
-  });
-  circle.bindTo('center', markerObject, 'position');*/
-
   markerObject.setMap(mapObject);
-
   markersArray.push(markerObject);
 }
 
+function distanceCheck(distance){
+  var distanceNum = parseInt(distance);
+  var limit1Element = document.getElementById("llimit",10);
+  var limit1 = parseInt(limit1Element.value);
+  var limit2Element = document.getElementById("ulimit",10);
+  var limit2 = parseInt(limit2Element.value);
+  
+  if(limit1 > limit2)
+  {
+    var ulimit = limit1;
+    var llimit = limit2;
+  }
+  if(limit1 < limit2)
+  {
+    var llimit = limit1;
+    var ulimit = limit2;
+  }	
+  if(limit1 == limit2)
+  {
+    var llimit = limit1;
+    var ulimit = limit2;
+  }
+  if(distanceNum >= llimit && distanceNum <= ulimit)
+  {
+    return true;
+  }
+  else if(isNaN(limit1) || isNaN(limit2))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
 
 //Removes existing markers from the map
 function clearMarkers(){
@@ -339,7 +336,23 @@ function loadNewMarkers(firstMonth, firstDay, secondMonth, secondDay, firstYear,
   ajaxRequest.send();
 }
 
+function buttonUpdateValues(){
+  clearMarkers();
+  if (loadNewIncidents) {
+    currIncidents = [];
+    updateMapWithNewValues();
+  }
+  else
+  {
+    timeCheck();
+  }
+  
+  loadNewIncidents = false;
+  
+}
+
 function init() {
+  loadNewIncidents = false;
   var mapCanvas = document.getElementById("mapArea");
                                       //Lat&Long for Dunedin
   var mapCentre = new google.maps.LatLng(-45.874036, 170.503566);
@@ -351,18 +364,27 @@ function init() {
   mapObject = new google.maps.Map(mapCanvas, mapOptions);
 
   setCurrentMonth();
-
+  
   var time1 = document.getElementById('time1');
-  time1.value = 12;
+  time1.value = 0;
 
   var time2 = document.getElementById('time2');
-  time2.value = 12;
+  time2.value = 0;
+  
+  var dis1Box = document.getElementById('llimit');
+  dis1Box.value = "30";
+  var dis2Box = document.getElementById('ulimit');
+  dis2Box.value = "150";
 
   var currentMonth = new Date().getMonth() + 1;
   var firstDay = "1";
   var currentYear = new Date().getFullYear();
   var secondDay = daysInMonth(currentMonth,currentYear);
-
+  var buttonClick = document.getElementById("checkDistance");
+  
+  //Set button onclick
+  buttonClick.onclick = buttonUpdateValues;
+  
   loadNewMarkers(currentMonth, firstDay, currentMonth, secondDay, currentYear, currentYear);
 
   updateMapWithNewValues();

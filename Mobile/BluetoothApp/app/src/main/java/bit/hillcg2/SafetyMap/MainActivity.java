@@ -8,6 +8,8 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -114,9 +116,6 @@ public class MainActivity extends Activity {
         btnConnectDevice = (ImageView)findViewById(R.id.btnConnectToDevice);
         btnConnectDevice.setOnClickListener(new connectDevice());
 
-        //if(btleManager.checkBTEnabled())
-        //    btleManager.startScanning();
-
         if(btMaster.checkBTEnabled())
         {
             btMaster.startScanning();
@@ -129,9 +128,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        //if(btleManager.checkBTEnabled())
-        //    btleManager.startScanning();
         if(btMaster.checkBTEnabled())
             btMaster.startScanning();
     }
@@ -244,16 +240,23 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void messageRecieved(final String message){
-        vibrator.vibrate(1000);
-        incidentManager.incidentRecieved(message);
+    public void messageReceived(final String message){
+        Location currLocation = getCurrentLocation();
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                //Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
-            }
-        });
+        if(currLocation != null) {
+            vibrator.vibrate(1000);
+            incidentManager.incidentReceived(message);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);//(Steam type, volume)
+                    toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 300);//(tone type, duration)
+                    //Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
     }
 
     public Location getCurrentLocation(){

@@ -76,6 +76,10 @@ public class DBManager{
         for(int i=0; i < recordCount; i++)
         {
             //Get all of the values to create an incident
+            int idIndex = recordSet.getColumnIndex("incidentID");
+            int id = recordSet.getInt(idIndex);
+
+            //Get all of the values to create an incident
             int distanceIndex = recordSet.getColumnIndex("distance");
             int distance = recordSet.getInt(distanceIndex);
 
@@ -92,7 +96,7 @@ public class DBManager{
             String lng = recordSet.getString(lngIndex);
 
             //Create the incident and add it into array
-            Incident currIncident = new Incident(distance, time, date, lat, lng);
+            Incident currIncident = new Incident(id, distance, time, date, lat, lng);
             incidentArray.add(currIncident);
 
             //Get next record
@@ -151,7 +155,7 @@ public class DBManager{
                 String lng = recordSet.getString(lngIndex);
 
                 //Create the incident and add it into array
-                Incident currIncident = new Incident(distance, time, date, lat, lng);
+                Incident currIncident = new Incident(id, distance, time, date, lat, lng);
                 incidentArray.add(currIncident);
             }
 
@@ -164,6 +168,16 @@ public class DBManager{
 
         //Return all of the incidents
         return incidentArray;
+    }
+
+    public void deleteIncident(int incidentID){
+        incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
+
+        String deleteQuery = "DELETE FROM tblIncident WHERE incidentID = " + incidentID;
+
+        incidentDB.execSQL(deleteQuery);
+
+        incidentDB.close();
     }
 
     //Changes status of all incidents that haven't been uploaded to say they have

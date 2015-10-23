@@ -246,7 +246,7 @@ public class BTLEManager {
             {
                 try
                 {
-                    //mainActivity.messageRecieved(characteristic.getStringValue(0));
+                    //mainActivity.messageReceived(characteristic.getStringValue(0));
                     btMaster.messageRecieved(characteristic.getStringValue(0));
                 }
                 catch (Exception e)

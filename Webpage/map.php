@@ -45,7 +45,10 @@
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li><a href="index.php">Home</a></li>
-            <li class="active"><a href="">Map</a></li>
+	    <li class="active"><a href="">Map</a></li>
+	    <li><a href="howItWorks.php">How it works</a></li>
+	    <li><a href="youCanHelp.php">You can help -Volunteering</a>
+	    <li><a href="contact.php">Contact us</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -54,9 +57,19 @@
     <div class="mainContainer">
       <div class="textPadding">
         <h1>Map</h1>
-        <br>
-        <form action='map.php' method='POST'>
-        <div id='leftSortingBox'>
+        <br/>
+        <p>This map will show all of the incidents that have been collected and submitted. 
+        The sidebar will allow you to sort the data on date, time, and distance. 
+        The time sorting works by showing all the incidents between the first and second time dropdown. If the times are the same it will
+        show all incidents. 
+        The maximum distance an incident can be is 150cm and the lowest is 30cm. The system has been in use since August 6th 2015, so you
+        will be able to find data from then onwards.</p>
+      </div>
+
+    <!-- Google map and sidebar container-->
+    <div>
+      <div id="mapSideBar">
+        <div>
           <p class='alignRight'>Date between:
             <select id='month1Selector' name='monthSelector' onchange="month1Changed(this.value);">
               <!--Change to select current month automatically-->
@@ -74,7 +87,7 @@
               <option value='12'>December</option>
             </select>
 
-            <select id='day1Selector' name='daySelector' onchange="dayChanged();">
+            <select id='day1Selector' name='daySelector' onchange="dayChanged()">
             </select>
           </p>
           <p class='alignRight'>
@@ -96,14 +109,15 @@
               <option value='12'>December</option>
             </select>
 
-            <select id='day2Selector' name='daySelector' onchange="dayChanged();">
+            <select id='day2Selector' name='daySelector' onchange="dayChanged()">
             </select>
           </p>
         </div>
-        <div id='rightSortingBox'>
+        <br/>
+        <div>
           <p class='alignRight'>
             Time between:
-            <select id='time1' name='time1' onchange="timeChanged();">
+            <select id='time1' name='time1'>
               <option value='1'>1</option>
               <option value='2'>2</option>
               <option value='3'>3</option>
@@ -115,18 +129,18 @@
               <option value='9'>9</option>
               <option value='10'>10</option>
               <option value='11'>11</option>
-              <option value='12'>12</option>
+              <option value='0'>12</option>
             </select>
 
-            <select id='time1AmPm' name='time1AmPm' onchange="timeChanged();">
-              <option value='1'>am</option>
-              <option value='2'>pm</option>
+            <select id='time1AmPm' name='time1AmPm'>
+              <option value='AM'>am</option>
+              <option value='PM'>pm</option>
             </select>
           </p>
           <p class='alignRight'>
             and
 
-            <select id='time2' name='time2' onchange="timeChanged();">
+            <select id='time2' name='time2'>
              <option value='1'>1</option>
               <option value='2'>2</option>
               <option value='3'>3</option>
@@ -138,21 +152,28 @@
               <option value='9'>9</option>
               <option value='10'>10</option>
               <option value='11'>11</option>
-              <option value='12'>12</option>
+              <option value='0'>12</option>
             </select>
 
-            <select id='time2AmPm' name='time2AmPm' onchange="timeChanged();">
-              <option value='1'>am</option>
-              <option value='2'>pm</option>
+            <select id='time2AmPm' name='time2AmPm'>
+              <option value='AM'>am</option>
+              <option value='PM'>pm</option>
             </select>
-
           </p>
         </div>
-        </form>
-      </div>
-
-    <!-- Insert google map somewhere here-->
-    <div id="mapArea"></div>
+        <br/>
+	 <div>
+	  <p class='alignRight'>
+          Distance one:<input type="text" id="llimit" size="3" >cm<br/>
+          Distance two:<input type="text" id="ulimit" size="3" >cm<br/>
+          <br/>
+	  <input type="button" id="checkDistance" value="Update incidents">
+	  </p>
+        </div>
+      </div><!-- End map side bar-->
+      <div id="mapArea"></div>
+    </div>
+    <br class="clear"/>
 
     </div><!-- /.container -->
 

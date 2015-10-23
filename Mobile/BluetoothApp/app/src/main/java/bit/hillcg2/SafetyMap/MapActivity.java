@@ -1,11 +1,12 @@
 package bit.hillcg2.SafetyMap;
 
+import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -18,17 +19,17 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.widget.ArrayAdapter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-
 import bit.hillcg2.SafetyMap.Managers.DBManager;
 import bit.hillcg2.SafetyMap.Models.Incident;
 
 
-public class MapActivity extends ActionBarActivity implements OnMapReadyCallback {
+public class MapActivity extends Activity implements OnMapReadyCallback {
 
     private MapFragment mapFragment;
     private GoogleMap map;
@@ -43,6 +44,10 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     private Spinner spinDay;
     private ArrayAdapter monthAdapter;
     private ArrayAdapter dayAdapter;
+    private MarkerInfoDialog markerInfoDialog;
+    ArrayList<Incident> displayedIncidents;
+    ArrayList<Marker> allMarkers;
+    Marker lastClickedMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +66,9 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 
         spinMonth = (Spinner)findViewById(R.id.spinMonth);
         spinDay = (Spinner)findViewById(R.id.spinDay);
+
+        displayedIncidents = new ArrayList<Incident>();
+        allMarkers = new ArrayList<Marker>();
 
         Calendar cal = Calendar.getInstance();
 
@@ -117,6 +125,8 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         //Set map to global so other methods can use it
         map = googleMap;
 
+        map.setOnMarkerClickListener(new markerClickHandler());
+
         //Move map to current location
         Location currentLocation = locationManager.getLastKnownLocation(providerName);
 
@@ -170,9 +180,11 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                     LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
 
                     //Add marker for incident onto the map
-                    map.addMarker(new MarkerOptions()
-                            .position(incidentPos)
-                            .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
+                    Marker newMarker = map.addMarker(new MarkerOptions()
+                            .position(incidentPos));
+
+                    allMarkers.add(newMarker);
+                    displayedIncidents.add(i);
                 }
             }
             //If all days in a specific month selected
@@ -192,9 +204,11 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                     LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
 
                     //Add marker for incident onto the map
-                    map.addMarker(new MarkerOptions()
-                            .position(incidentPos)
-                            .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
+                    Marker newMarker = map.addMarker(new MarkerOptions()
+                            .position(incidentPos));
+
+                    allMarkers.add(newMarker);
+                    displayedIncidents.add(i);
                 }
             }
             //If month and a day are selected
@@ -214,11 +228,34 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                     LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
 
                     //Add marker for incident onto the map
-                    map.addMarker(new MarkerOptions()
-                            .position(incidentPos)
-                            .title("Vehicle distance: " + String.valueOf(distance) + "\nTime: " + time + "\nDate: " + date));
+                    Marker newMarker = map.addMarker(new MarkerOptions()
+                            .position(incidentPos));
+
+                    allMarkers.add(newMarker);
+                    displayedIncidents.add(i);
                 }
             }
+        }
+    }
+
+    public class markerClickHandler implements GoogleMap.OnMarkerClickListener{
+
+        @Override
+        public boolean onMarkerClick(Marker marker) {
+            //open dialog
+            markerInfoDialog = new MarkerInfoDialog();
+
+            //Get current incident
+            int indexOfClickedMarker = allMarkers.indexOf(marker);
+            Incident currIncident = displayedIncidents.get(indexOfClickedMarker);
+            lastClickedMarker = marker;
+
+            markerInfoDialog.setCurrIncident(currIncident);
+
+            FragmentManager fm = getFragmentManager();
+            markerInfoDialog.show(fm, "MarkerInfo");
+
+            return false;
         }
     }
 
@@ -226,6 +263,21 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     public void updateMap(){
         map.clear();
         addIncidentsToMap();
+    }
+
+    public void deleteIncident(int incidentID){
+        int arrayIndex = allMarkers.indexOf(lastClickedMarker);
+
+        //Remove marker and incident from arrayLists
+        lastClickedMarker.remove();
+        allMarkers.remove(arrayIndex);
+        displayedIncidents.remove(arrayIndex);
+
+        dbManager.deleteIncident(incidentID);
+    }
+
+    public void closeDialog(){
+        markerInfoDialog.dismiss();
     }
 
     //Handler for when a month is selected from spinner
