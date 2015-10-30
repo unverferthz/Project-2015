@@ -17,7 +17,7 @@ import java.util.UUID;
 import bit.hillcg2.SafetyMap.MainActivity;
 
 public class BTManager {
-
+    //Globals
     public static final int SCAN_PERIOD = 15000;
     public static final int SCAN_DELAY = 5000;
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -38,8 +38,9 @@ public class BTManager {
     private boolean isConnected;
     private boolean stopLoop;
 
-    Handler handler;
+    private Handler handler;
 
+    //Constructor
     public BTManager(MainActivity activity, BTMaster btMaster){
 
         mainActivity = activity;
@@ -47,6 +48,8 @@ public class BTManager {
         init();
     }
 
+    //Pre-condition: None
+    //Post-condition: Initialize everything that is needed
     private void init(){
         BTAdapter = BluetoothAdapter.getDefaultAdapter();
         deviceList = new ArrayList<BluetoothDevice>();
@@ -58,14 +61,15 @@ public class BTManager {
 
         collectedMessage = "";
 
-        // Register the BroadcastReceiver
+        // Register the BroadcastReceiver to main activity
         deviceFoundFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         disconnectedFilter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         mainActivity.registerReceiver(mReceiver, deviceFoundFilter);
         mainActivity.registerReceiver(mReceiver, disconnectedFilter);
     }
 
-    //Disconnect from device if already connected. Reset everything and scan for devices
+    //Pre-condition: None
+    //Post-condition: Disconnect from device if already connected. Reset everything to be ready to scan again
     public void reset(){
         if(connectionThread != null)
             connectionThread.cancel();
@@ -86,7 +90,8 @@ public class BTManager {
         stopLoop = false;
     }
 
-    //Call on ondestroy from main activity
+    //Pre-condition: None
+    //Post-condition: Call from another class to terminate connections
     public void closeConnections(){
         if(connectionThread != null)
             connectionThread.cancel();
@@ -100,14 +105,16 @@ public class BTManager {
         mainActivity.unregisterReceiver(mReceiver);
     }
 
-    //Connect to the bluetooth device passed in
+    //Pre-condition: Device needs to use a regular bluetooth connection, not low energy
+    //Post-condition: Connect to the bluetooth device passed in
     public void ConnectToDevice(BluetoothDevice device)
     {
         connectThread = new ConnectThread(device);
         connectThread.run();
     }
 
-    //Start scanning for bluetooth devices
+    //Pre-condition: None
+    //Post-condition: Start scanning for bluetooth devices
     public void startScanning(){
         //Check if it's already scanning or already connected to the device
         if(!isScanning && !isConnected && !stopLoop)
@@ -146,6 +153,8 @@ public class BTManager {
         }
     }
 
+    //Pre-condition: None
+    //Post-condition: Stops class from scanning for more devices
     public void stopScanning(){
         stopLoop = true;
         BTAdapter.cancelDiscovery();
@@ -157,19 +166,16 @@ public class BTManager {
         }
     }
 
-    //Send message passed in over bluetooth
+    //Pre-condition: Connection to a device required before use
+    //Post-condition: Sends a message over bluetooth
     public void sendMessage(String message){
         connectionThread.write(message);
     }
 
-    //Adds device into device list
+    //Pre-condition: None
+    //Post-condition: Adds bluetooth device into the device list
     public void addFoundDevice(BluetoothDevice device){
         deviceList.add(device);
-    }
-
-    //Returns a list of all the bluetooth devices in the area
-    public ArrayList<BluetoothDevice> getDeviceList(){
-        return deviceList;
     }
 
     //Class for handling connection to bluetooth device
@@ -179,6 +185,7 @@ public class BTManager {
         private final OutputStream mmOutStream;
         private Thread thread;
 
+        //Constructor
         public ConnectedThread(BluetoothSocket socket) {
             mmSocket = socket;
             InputStream tmpIn = null;
@@ -187,18 +194,22 @@ public class BTManager {
 
             try
             {
+                //Try get input and output streams
                 tmpIn = mmSocket.getInputStream();
                 tmpOut = mmSocket.getOutputStream();
             }
             catch (IOException e)
             {
+                e.printStackTrace();
             }
 
+            //Set streams
             mmInStream = tmpIn;
             mmOutStream = tmpOut;
         }
 
-        //Method for reading from bluetooth device
+        //Pre-condition: Requires connection to be successful to bluetooth device
+        //Post-condition: Starts listening for messages to be sent across bluetooth
         public void run() {
             thread = new Thread() {
                 @Override
@@ -216,10 +227,15 @@ public class BTManager {
 
                                 String message = new String(buffer, 0, bytes);
 
+                                //build up the message string
                                 collectedMessage += message;
+
+                                //Check if end of the message
                                 if(collectedMessage.contains("|"))
                                 {
                                     int count = 0;
+
+                                    //Find where the end character is
                                     for(int i=0; i < collectedMessage.length(); i++)
                                     {
                                         if(collectedMessage.charAt(i) == '|')
@@ -230,6 +246,7 @@ public class BTManager {
 
                                     ArrayList<String> messages = new ArrayList<String>();
 
+                                    //Get the message without the garbage characters in it
                                     while(count > 0)
                                     {
                                         //-2 to eliminate the /r/n attatched to the end
@@ -239,15 +256,16 @@ public class BTManager {
                                         count--;
                                     }
 
-                                    //Send message
+                                    //Send message to btMaster class
                                     for(String s:messages)
                                     {
-                                        btMaster.messageRecieved(s);
+                                        btMaster.messageReceived(s);
                                     }
                                 }
                             }
                             catch (IOException e)
                             {
+                                e.printStackTrace();
                                 break;
                             }
                         }
@@ -259,20 +277,29 @@ public class BTManager {
                 }
             };
 
+            //Start asynchronous method
             thread.start();
         }
 
-        //TODO make this stop crashing if not connected
-        /* Call this from the main activity to send data to the remote device */
+        //Pre-condition: Requires a successful connection to a bluetooth device
+        //Post-condition: Sends a message over bluetooth
         public void write(String message) {
-            try {
-                byte[] bytes = message.getBytes();
-                mmOutStream.write(bytes);
-            } catch (IOException e) {
+            if(mmOutStream != null)
+            {
+                try
+                {
+                    byte[] bytes = message.getBytes();
+                    mmOutStream.write(bytes);
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
             }
         }
 
-        /* Call this from the main activity to shutdown the connection */
+        //Pre-condition: None
+        //Post-condition: Closes off the connection to the bluetooth device
         public void cancel() {
             try
             {
@@ -286,15 +313,19 @@ public class BTManager {
             }
             catch (IOException e)
             {
+                e.printStackTrace();
             }
         }
     }
 
+    //Pre-condition: Broadcast receiver needs to be registered
+    //Post-condition: Used to listen out for events like when a bluetooth device is found, discovered etc
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
+            //If bluetooth device was found
             if(BluetoothDevice.ACTION_FOUND.equals(action))
             {
                 //Get BluetoothDevice object from the Intent
@@ -302,18 +333,19 @@ public class BTManager {
 
                 boolean alreadyInList = false;
 
+                //Check if device was already in the gathered list
                 for(BluetoothDevice b : deviceList)
                 {
                     if(b.getAddress().equals(device.getAddress()))
                         alreadyInList = true;
                 }
 
+                //Add into list if not already in
                 if(!alreadyInList)
                 {
                     addFoundDevice(device);
 
-                    //mainActivity.deviceFound(device);
-
+                    //If device is one of our arduinos, inform BTMaster
                     String deviceName = device.getName();
                     if(deviceName != null)
                     {
@@ -325,6 +357,7 @@ public class BTManager {
                 }
             }
 
+            //If disconnected from bluetooth device, reset everything and set up to scan again
             if(BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action))
             {
                 reset();
@@ -338,6 +371,7 @@ public class BTManager {
         private final BluetoothSocket mmSocket;
         private final BluetoothDevice mmDevice;
 
+        //Constructor that sets up the communication socket
         public ConnectThread(BluetoothDevice device) {
             BluetoothSocket tmp = null;
             mmDevice = device;
@@ -348,10 +382,13 @@ public class BTManager {
             }
             catch(IOException e)
             {
+                e.printStackTrace();
             }
             mmSocket = tmp;
         }
 
+        //Pre-condition: None
+        //Post-condition: Tries to connect to the already set up socket
         public void run() {
             BTAdapter.cancelDiscovery();
 
@@ -368,11 +405,12 @@ public class BTManager {
                 }
                 catch(IOException closeException)
                 {
+                    closeException.printStackTrace();
                 }
                 return;
             }
 
-            //Bluetooth connected
+            //Bluetooth connected, set up class that handles connection
             connectionThread = new ConnectedThread(mmSocket);
 
             //Run method that listens for bluetooth messages
@@ -381,13 +419,14 @@ public class BTManager {
             //cancel();
         }
 
-        /**
-         Will cancel an in-progress connection, and close the socket
-         **/
+
+        //Pre-condition: None
+        //Post-condition: Will cancel an in-progress connection and close the socket
         public void cancel() {
             try {
                 mmSocket.close();
             } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

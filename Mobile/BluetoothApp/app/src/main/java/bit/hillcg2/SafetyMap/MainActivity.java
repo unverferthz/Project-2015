@@ -25,7 +25,6 @@ import android.widget.TextView;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.os.Vibrator;
-
 import bit.hillcg2.SafetyMap.BlueTooth.BTMaster;
 import bit.hillcg2.SafetyMap.Models.CustomMenuItem;
 import bit.hillcg2.SafetyMap.Managers.DBManager;
@@ -35,18 +34,17 @@ import bit.hillcg2.SafetyMap.Managers.IncidentManager;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class MainActivity extends Activity {
 
-    //TODO get normal bluetooth working
     /***Global variables****/
     private LocationManager locationManager;
     private Criteria defaultCriteria;
     private String providerName;
 
     private boolean locationUpdating;
+    private boolean shouldExecuteOnResume;
 
     private customLocationListener customListener;
     private Location currLocation;
 
-    private ArrayAdapter<String> messageAdapter;
     private MenuArrayAdapter menuAdapter;
     private ListView menuList;
     private ImageView btnConnectDevice;
@@ -59,7 +57,7 @@ public class MainActivity extends Activity {
 
     private Animation animation;
 
-    BTMaster btMaster;
+    private BTMaster btMaster;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +68,8 @@ public class MainActivity extends Activity {
         init();
     }
 
-    //Method to initialize everything
+    //Pre-condition: None
+    //Post-condition: Initializes everything
     public void init(){
         //Set up location service
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
@@ -78,6 +77,7 @@ public class MainActivity extends Activity {
         providerName = locationManager.getBestProvider(defaultCriteria, false);
         customListener = new customLocationListener();
         currLocation = null;
+        shouldExecuteOnResume = false;
 
         locationUpdating = false;
 
@@ -89,14 +89,15 @@ public class MainActivity extends Activity {
 
         animation = AnimationUtils.loadAnimation(this, R.anim.rotate_around_center_point);
 
-        //btleManager = new BTLEManager(this);
+        //Set up bluetooth class
         btMaster = new BTMaster(this);
 
-        //Adapter for the listview
-        messageAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-
+        /** Set up for all widgets **/
         imageCenterOfRotation = (ImageView)findViewById(R.id.imageView3);
         boxConnectionStatus = (TextView)findViewById(R.id.boxConnectionStatus);
+
+        btnConnectDevice = (ImageView)findViewById(R.id.btnConnectToDevice);
+        btnConnectDevice.setOnClickListener(new connectDevice());
 
         menuAdapter = new MenuArrayAdapter(getBaseContext(), R.layout.menu_custom_listview);
 
@@ -104,6 +105,7 @@ public class MainActivity extends Activity {
         menuList.setAdapter(menuAdapter);
         menuList.setOnItemClickListener(new menuListHandler());
 
+        //Get custom menu items for menu list
         CustomMenuItem menuData = new CustomMenuItem(getResources().getString(R.string.btn_view_incidents), R.drawable.view_data);
         CustomMenuItem menuMap = new CustomMenuItem(getResources().getString(R.string.view_map), R.drawable.map);
         CustomMenuItem menuInstructions = new CustomMenuItem(getResources().getString(R.string.instructions_text), R.drawable.instructions);
@@ -113,9 +115,6 @@ public class MainActivity extends Activity {
         menuAdapter.add(menuInstructions);
         menuAdapter.notifyDataSetChanged();
 
-        btnConnectDevice = (ImageView)findViewById(R.id.btnConnectToDevice);
-        btnConnectDevice.setOnClickListener(new connectDevice());
-
         if(btMaster.checkBTEnabled())
         {
             btMaster.startScanning();
@@ -123,39 +122,46 @@ public class MainActivity extends Activity {
         }
     }//End init()
 
-
-    //On resume, scan and connect back to the arduino
+    //Pre-condition: None
+    //Post-condition: Tries to scan and reconnect to arduino on resume
     @Override
     protected void onResume() {
         super.onResume();
-        if(btMaster.checkBTEnabled())
+
+        if(!shouldExecuteOnResume)
+        {
+            shouldExecuteOnResume = true;
+        }
+        else if(btMaster.checkBTEnabled())
             btMaster.startScanning();
     }
 
-    //When program is terminated, disconnect everything related to bluetooth
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
+    //Pre-condition: None
+    //Post-condition: When app is closed, clean everything up
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
-        finishForActivityChange();
+        closeEverything();
     }
 
-    public void finishForActivityChange(){
+    //Closes off everything needed to change activity or when program is terminated
+    //Pre-condition: None
+    //Post-condition: Clean everything up to exit the activity
+    public void closeEverything(){
+        //Stop GPS updating
         if(locationUpdating)
         {
             locationManager.removeUpdates(customListener);
             locationUpdating = false;
         }
 
-        //btleManager.closeConnection();
+        //Close off bluetooth connections
         btMaster.closeConnections();
     }
 
+    //Pre-condition: Needs animation set up and button linked with xml
+    //Post-condition: Starts the animation for scanning and updates status text
     public void scanning(){
         runOnUiThread(new Runnable() {
             @Override
@@ -168,6 +174,8 @@ public class MainActivity extends Activity {
 
     }
 
+    //Pre-condition: Requires button to be linked with xml
+    //Post-condition: Starts location updating and stop animation, updates text
     public void connectedToBT(){
         MainActivity.this.runOnUiThread(new Runnable() {
             @Override
@@ -186,6 +194,8 @@ public class MainActivity extends Activity {
         });
     }
 
+    //Pre-condition: Button linked to xml
+    //Post-condition: Stop location updating and reset scanning picture. Set button up again
     public void disconnectedFromBT(){
         runOnUiThread(new Runnable() {
             @Override
@@ -214,14 +224,17 @@ public class MainActivity extends Activity {
         }
     }
 
+    //Handler for menu list, chooses from different activities to start up
     public class menuListHandler implements AdapterView.OnItemClickListener{
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             //Clean things up to prepare for exiting activity
-            finishForActivityChange();
+            closeEverything();
 
             Intent switchViewIntent = new Intent(getBaseContext(), MainActivity.class);
+
+            //Check which menu item was clicked and react accordingly
             switch(position)
             {
                 case 0:
@@ -240,30 +253,35 @@ public class MainActivity extends Activity {
         }
     }
 
+    //Pre-condition: Incident manager intialized. Message should be a number that is a distance passed from arduino
+    //Post-condition: Distance received from bluetooth, vibrate and beep to alert user
     public void messageReceived(final String message){
         Location currLocation = getCurrentLocation();
 
         if(currLocation != null) {
             vibrator.vibrate(1000);
+
+            //Alert incident manager of new incident
             incidentManager.incidentReceived(message);
 
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
 
-                    ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);//(Steam type, volume)
+                    ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 400);//(Stream type, volume)
                     toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 300);//(tone type, duration)
-                    //Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
                 }
             });
         }
     }
 
+    //Pre-condition: None
+    //Post-condition: Returns latest GPS location
     public Location getCurrentLocation(){
         return currLocation;
     }
 
-    //Handles startActivityForReset calls returning
+    //Handles startActivityForResult calls returning
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         //Bluetooth enable request
@@ -275,9 +293,9 @@ public class MainActivity extends Activity {
                 Toast.makeText(getApplicationContext(), "App requires bluetooth", Toast.LENGTH_LONG);
                 finish();
             }
+            //If bluetooth was turned on, start scanning
             if(resultCode == RESULT_OK)
             {
-                //btleManager.startScanning();
                 btMaster.startScanning();
             }
         }
@@ -308,6 +326,7 @@ public class MainActivity extends Activity {
         }
     }
 
+    //Adapter class for the menu list
     public class MenuArrayAdapter extends ArrayAdapter<CustomMenuItem>{
 
         public MenuArrayAdapter(Context context, int resource) {

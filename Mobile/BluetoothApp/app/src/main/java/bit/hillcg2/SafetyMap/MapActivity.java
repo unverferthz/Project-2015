@@ -8,6 +8,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v7.internal.widget.AdapterViewCompat;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -31,6 +32,7 @@ import bit.hillcg2.SafetyMap.Models.Incident;
 
 public class MapActivity extends Activity implements OnMapReadyCallback {
 
+    //Globals
     private MapFragment mapFragment;
     private GoogleMap map;
     private LocationManager locationManager;
@@ -40,14 +42,17 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
     private DBManager dbManager;
     private String months[];
     private String days[];
-    private Spinner spinMonth;
+    private String years[];
     private Spinner spinDay;
-    private ArrayAdapter monthAdapter;
+    private Spinner spinMonth;
+    private Spinner spinYear;
     private ArrayAdapter dayAdapter;
+    private ArrayAdapter monthAdapter;
+    private ArrayAdapter yearAdapter;
     private MarkerInfoDialog markerInfoDialog;
-    ArrayList<Incident> displayedIncidents;
-    ArrayList<Marker> allMarkers;
-    Marker lastClickedMarker;
+    private ArrayList<Incident> displayedIncidents;
+    private ArrayList<Marker> allMarkers;
+    private Marker lastClickedMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +63,8 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         init();
     }
 
-    //Initialize everything for use
+    //Pre-condition: None
+    //Post-condition: Initialize everything for use
     public void init(){
         //Get instances of views from layouts and set them up
         btnBackFromMap = (Button)findViewById(R.id.btnBackFromMap);
@@ -66,6 +72,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
 
         spinMonth = (Spinner)findViewById(R.id.spinMonth);
         spinDay = (Spinner)findViewById(R.id.spinDay);
+        spinYear = (Spinner)findViewById(R.id.spinYear);
 
         displayedIncidents = new ArrayList<Incident>();
         allMarkers = new ArrayList<Marker>();
@@ -74,6 +81,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
 
         //Get the current month and day to set initial values into spinners
         int currMonth = cal.get(Calendar.MONTH);
+        int currYear = cal.get(Calendar.YEAR);
 
         //Find out how many days the current month has
         int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
@@ -88,24 +96,38 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             days[i + 1] = currDay;
         }
 
+        //Number of years since project started
+        int numYearsSinceProjectStart = currYear - 2015;
+        years = new String[numYearsSinceProjectStart + 1];
+
+        for(int i=0; i <= numYearsSinceProjectStart; i++){
+            int newYear = 2015 + i;
+
+            years[i] = String.valueOf(newYear);
+        }
+
         //Array holding all months to use for spinner
         months = new String[]{"All", "January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"};
 
         //Set up adapters for the spinners
-        monthAdapter = new ArrayAdapter(this, R.layout.spinner_item, months);
         dayAdapter = new ArrayAdapter(this, R.layout.spinner_item, days);
+        monthAdapter = new ArrayAdapter(this, R.layout.spinner_item, months);
+        yearAdapter = new ArrayAdapter(this, R.layout.spinner_item, years);
 
         //Set spinners adapters
         spinMonth.setAdapter(monthAdapter);
         spinDay.setAdapter(dayAdapter);
+        spinYear.setAdapter(yearAdapter);
 
         //Set up spinners with their initial values
-        spinMonth.setSelection(currMonth + 1, false);
         spinDay.setSelection(0, false);
+        spinMonth.setSelection(currMonth + 1, false);
+        spinYear.setSelection(numYearsSinceProjectStart, false);
 
-        spinDay.setOnItemSelectedListener(new daySelected());
+        spinDay.setOnItemSelectedListener(new updateMapOnSelectHandler());
         spinMonth.setOnItemSelectedListener(new monthSelected());
+        spinYear.setOnItemSelectedListener(new updateMapOnSelectHandler());
 
         //Get the database manager
         dbManager = new DBManager(this);
@@ -120,11 +142,14 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         mapFragment.getMapAsync(this);
     }
 
+    //Pre-condition: None
+    //Post-condition: Called when the map is finished being set up
     @Override
     public void onMapReady(GoogleMap googleMap) {
         //Set map to global so other methods can use it
         map = googleMap;
 
+        //Set marker click handler
         map.setOnMarkerClickListener(new markerClickHandler());
 
         //Move map to current location
@@ -140,10 +165,12 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(-45.874036, 170.503566), 17));
         }
 
+        //Fill map with markers
         addIncidentsToMap();
     }
 
-    //Adds all of the incidents onto the map for the current selected date
+    //Pre-condition: None
+    //Post-condition: Adds all of the incidents onto the map for the current selected date
     public void addIncidentsToMap(){
         //Pull all incidents out from database
         ArrayList<Incident> allIncidents = dbManager.getAllIncidents();
@@ -151,6 +178,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         //Get the date values from spinners
         String selectedMonth = String.valueOf(spinMonth.getSelectedItemPosition());
         String selectedDay = spinDay.getSelectedItem().toString();
+        String selectedYear = spinYear.getSelectedItem().toString();
 
         //Loop over all the incidents
         for(Incident i : allIncidents)
@@ -161,83 +189,50 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             //Split it apart for comparison
             String[] splitDate = date.split("/");
             String currMonth = splitDate[1];
-            String currDay = splitDate[0];
+            String currDay = splitDate[2];
+            String currYear = splitDate[0];
 
             //If all months selected
-            if(selectedMonth.equals("0"))
+            if(selectedMonth.equals("0") && currYear.equals(selectedYear))
             {
-                //Get the rest of the incidents data
-                int distance = i.getDistance();
-                String lat = i.getLat();
-                String lng = i.getLng();
-                String time = i.getTime();
-
-                //TODO do something with the null values
-                //Check that the incident has a GPS location
-                if (!lat.equals("null") && !lng.equals("null"))
-                {
-                    //Turn the gps locations into one the map can work with
-                    LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
-
-                    //Add marker for incident onto the map
-                    Marker newMarker = map.addMarker(new MarkerOptions()
-                            .position(incidentPos));
-
-                    allMarkers.add(newMarker);
-                    displayedIncidents.add(i);
-                }
+                addSingleMarkerToMap(i);
             }
             //If all days in a specific month selected
-            else if(currMonth.equals(selectedMonth) && selectedDay.equals("All"))
+            else if(currMonth.equals(selectedMonth) && selectedDay.equals("All") && currYear.equals(selectedYear))
             {
-                //Get the rest of the incidents data
-                int distance = i.getDistance();
-                String lat = i.getLat();
-                String lng = i.getLng();
-                String time = i.getTime();
-
-                //TODO do something with the null values
-                //Check that the incident has a GPS location
-                if (!lat.equals("null") && !lng.equals("null"))
-                {
-                    //Turn the gps locations into one the map can work with
-                    LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
-
-                    //Add marker for incident onto the map
-                    Marker newMarker = map.addMarker(new MarkerOptions()
-                            .position(incidentPos));
-
-                    allMarkers.add(newMarker);
-                    displayedIncidents.add(i);
-                }
+                addSingleMarkerToMap(i);
             }
             //If month and a day are selected
-            else if(currMonth.equals(selectedMonth) && currDay.equals(selectedDay))
+            else if(currMonth.equals(selectedMonth) && currDay.equals(selectedDay) && currYear.equals(selectedYear))
             {
-                //Get the rest of the incidents data
-                int distance = i.getDistance();
-                String lat = i.getLat();
-                String lng = i.getLng();
-                String time = i.getTime();
-
-                //TODO do something with the null values
-                //Check that the incident has a GPS location
-                if (!lat.equals("null") && !lng.equals("null"))
-                {
-                    //Turn the gps locations into one the map can work with
-                    LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
-
-                    //Add marker for incident onto the map
-                    Marker newMarker = map.addMarker(new MarkerOptions()
-                            .position(incidentPos));
-
-                    allMarkers.add(newMarker);
-                    displayedIncidents.add(i);
-                }
+                addSingleMarkerToMap(i);
             }
         }
     }
 
+    //Pre-condition: Incident can't be null
+    //Post-condition: Adds a single marker to the map for passed in incident
+    public void addSingleMarkerToMap(Incident i){
+        //Get location of incident
+        String lat = i.getLat();
+        String lng = i.getLng();
+
+        //Check that the incident has a GPS location
+        if (!lat.equals("null") && !lng.equals("null"))
+        {
+            //Turn the gps locations into one the map can work with
+            LatLng incidentPos = new LatLng(Double.valueOf(lat), Double.valueOf(lng));
+
+            //Add marker for incident onto the map
+            Marker newMarker = map.addMarker(new MarkerOptions()
+                    .position(incidentPos));
+
+            allMarkers.add(newMarker);
+            displayedIncidents.add(i);
+        }
+    }
+
+    //Handles when markers are clicked, opens dialog fragment on click
     public class markerClickHandler implements GoogleMap.OnMarkerClickListener{
 
         @Override
@@ -250,8 +245,10 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             Incident currIncident = displayedIncidents.get(indexOfClickedMarker);
             lastClickedMarker = marker;
 
+            //Pass incident into the dialog fragment
             markerInfoDialog.setCurrIncident(currIncident);
 
+            //Show fragment
             FragmentManager fm = getFragmentManager();
             markerInfoDialog.show(fm, "MarkerInfo");
 
@@ -259,12 +256,15 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         }
     }
 
-    //Clears the map and adds asks for markers to be added back onto the map
+    //Pre-condition: None
+    //Post-condition: Clears the map and adds asks for markers to be added back onto the map
     public void updateMap(){
         map.clear();
         addIncidentsToMap();
     }
 
+    //Pre-condition: None
+    //Post-condition: Deletes an incident from the database and the map
     public void deleteIncident(int incidentID){
         int arrayIndex = allMarkers.indexOf(lastClickedMarker);
 
@@ -273,9 +273,12 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         allMarkers.remove(arrayIndex);
         displayedIncidents.remove(arrayIndex);
 
+        //Get database to delete incident
         dbManager.deleteIncident(incidentID);
     }
 
+    //Pre-condition: Dialog should be open when called
+    //Post-condition: Closes dialog popup
     public void closeDialog(){
         markerInfoDialog.dismiss();
     }
@@ -288,11 +291,15 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             //The number of the month that was selected
             int clickedMonth = pos;
 
+            //0 = all months
             if(clickedMonth != 0)
             {
                 //Set up and calculate how many days the selected month has
-                Calendar myCal = new GregorianCalendar(2015, clickedMonth, 1);
-                int daysInMonth = myCal.getActualMaximum(Calendar.DAY_OF_MONTH);
+                Calendar calToGetYear = Calendar.getInstance();
+                int currYear = calToGetYear.get(Calendar.YEAR);
+
+                Calendar calToWorkOutNumDays = new GregorianCalendar(currYear, clickedMonth, 1);
+                int daysInMonth = calToWorkOutNumDays.getActualMaximum(Calendar.DAY_OF_MONTH);
 
                 //Set up a new array for days
                 int daysArraySize = daysInMonth + 1;
@@ -327,8 +334,8 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         }
     }
 
-    //Handler for when a new day is selected from spinner
-    public class daySelected implements OnItemSelectedListener{
+    //Handler for when a spinner is updated, asks to update the map with new selected values
+    public class updateMapOnSelectHandler implements OnItemSelectedListener{
 
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {

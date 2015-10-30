@@ -167,7 +167,7 @@
           Distance one:<input type="text" id="llimit" size="3" >cm<br/>
           Distance two:<input type="text" id="ulimit" size="3" >cm<br/>
           <br/>
-	  <input type="button" id="checkDistance" value="Update incidents">
+	  <input type="button" id="btnCheckDistance" value="Update incidents">
 	  </p>
         </div>
       </div><!-- End map side bar-->

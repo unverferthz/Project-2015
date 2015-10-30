@@ -21,7 +21,7 @@
         the bottom of the main screen.\n\n
     When connected, if the device detects an object within a close proximity the phone will vibrate to alert you.\n\n
     When that happens it will store data about the incident which can be viewed on a map or you can see the raw data.\n\n
-    You can tap incidents on the map to view more information about them and sort by date at the top of the map.\n\n
+    You can tap incidents on the map to view more information about them as well as delete incidents and sort by date at the top of the map.\n\n
     You can send the data you\'ve collected to the Dunedin City Council under the View Data page.</string>
     <string name="incident_info">Incident Info:</string>
     <string name="vehicle_distance">Vehicle Distance:</string>

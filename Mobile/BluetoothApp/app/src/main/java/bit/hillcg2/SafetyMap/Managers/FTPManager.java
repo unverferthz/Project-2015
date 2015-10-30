@@ -25,6 +25,7 @@ import bit.hillcg2.SafetyMap.Models.Incident;
 import bit.hillcg2.SafetyMap.ViewIncidents;
 
 public class FTPManager {
+
     //FTPClient mFTP;
     private JSch jsch;
     private AssetManager am;
@@ -40,16 +41,17 @@ public class FTPManager {
         incidentActivity = startIncidentActivity;
     }
 
-    //Starts the asynchronous method that uploads file to server
+    //Pre-condition: None
+    //Post-condition: Starts the asynchronous method that uploads file to server
     public void sendFile(){
         AsyncSendFile aSendFile = new AsyncSendFile();
         aSendFile.execute();
     }
 
-    //Creates a text file from the sqlite database incidents and returns it as a text file
+    //Pre-condition: None
+    //Post-condition: Returns a text file from the sqlite database incidents and returns it as a csv file
     private File createFileToSend(){
         ArrayList<Incident> allIncidents = dbManager.getNewIncidents();
-        //ArrayList<Incident> allIncidents = dbManager.getAllIncidents();
 
         File outputFile = null;
 
@@ -67,6 +69,7 @@ public class FTPManager {
 
                 String fileName = "incidentData_" + currTime + currDate + ".txt";
 
+                //Setup file
                 FileOutputStream outputStream;
                 outputStream = context.openFileOutput(fileName, context.MODE_PRIVATE);
                 outputFile = new File(context.getFilesDir(), fileName);
@@ -78,7 +81,7 @@ public class FTPManager {
                 //Loop over all incidents and add into the text file
                 for (Incident i : allIncidents)
                 {
-                    //For JSON format
+                    /** For JSON format **/
 
                     /*String incidentString = "";
 
@@ -106,7 +109,8 @@ public class FTPManager {
                     count++;
                 }*/
 
-                    //CSV format
+                    /** CSV format **/
+                    //build up the string
                     String incidentString = "";
                     String distance = String.valueOf(i.getDistance());
                     incidentString += distance + ",";
@@ -125,9 +129,11 @@ public class FTPManager {
 
                     count++;
 
+                    //If there's more incidents, add a comma
                     if(count < numIncidents)
                         incidentString += ",";
 
+                    //write into text file
                     outputStream.write(incidentString.getBytes());
                 }
             }
@@ -137,8 +143,6 @@ public class FTPManager {
             }
         }
 
-        //long amount = outputFile.length();
-
         //Returns null file if no new data
         return outputFile;
     }
@@ -146,10 +150,13 @@ public class FTPManager {
     //Class for handling asynchronous sending of file
     public class AsyncSendFile extends AsyncTask<Void,Void,String>
     {
+        //Pre-condition: None
+        //Post-condition: Called after method has finished. Informs other classes if upload was successful or not
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
 
+            //Inform database that upload was successful so it can update the data that it has been uploaded
             if(s.equals("Upload successful"))
                 dbManager.confirmedUpload();
 
@@ -157,12 +164,14 @@ public class FTPManager {
             incidentActivity.finishedUpload(s);
         }
 
-        //Asynchronous call
+        //Pre-condition: None
+        //Post-condition: Asynchronous call to send file up to server
         @Override
         protected String doInBackground(Void... voids) {
             //Get the text file that needs to be sent
             File outputFile = createFileToSend();
 
+            //Default uploadMessage
             String uploadMessage = "Upload failed";
 
             //Check that there was actually a file
@@ -219,6 +228,8 @@ public class FTPManager {
                     //Close connections
                     sftp.disconnect();
                     session.disconnect();
+
+                    //update upload message
                     uploadMessage = "Upload successful";
 
                     //mFTP.disconnect();

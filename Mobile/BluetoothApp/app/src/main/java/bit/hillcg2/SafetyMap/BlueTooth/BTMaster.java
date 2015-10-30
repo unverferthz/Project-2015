@@ -5,20 +5,20 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.widget.Toast;
-
 import java.util.ArrayList;
-
 import bit.hillcg2.SafetyMap.MainActivity;
 
 public class BTMaster {
 
+    //Globals
     private static final int REQUEST_ENABLE_BT = 1;
-    BTLEManager btleManager;
-    BTManager btManager;
-    ArrayList<BluetoothDevice> deviceList;
-    MainActivity mainActivity;
-    boolean connected;
+    private BTLEManager btleManager;
+    private BTManager btManager;
+    private ArrayList<BluetoothDevice> deviceList;
+    private MainActivity mainActivity;
+    private boolean connected;
 
+    //Constructor, sets up the bluetooth manager classes
     public BTMaster(MainActivity mainActivity){
         btleManager = new BTLEManager(mainActivity, this);
         btManager = new BTManager(mainActivity, this);
@@ -27,6 +27,8 @@ public class BTMaster {
         connected = false;
     }
 
+    //Pre-condition: None
+    //Post-condition: Returns true if bluetooth enabled, false if not and asks user to enable it. Closes app if device doesn't support bluetooth
     public boolean checkBTEnabled(){
         BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -34,7 +36,6 @@ public class BTMaster {
             Toast.makeText(mainActivity, "Device does not support bluetooth", Toast.LENGTH_LONG).show();
             mainActivity.finish();
         }
-
         if (!BTAdapter.isEnabled())
         {
             Intent enableBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -45,6 +46,8 @@ public class BTMaster {
         return true;
     }
 
+    //Pre-condition: None
+    //Post-condition: Start scanning with both bluetooth types
     public void startScanning(){
         if(!connected)
         {
@@ -55,6 +58,8 @@ public class BTMaster {
         }
     }
 
+    //Pre-condition: None
+    //Post-condition: Stops both bluetooth types scanning
     public void stopScans(){
         if(btleManager != null)
             btleManager.stopScan();
@@ -62,12 +67,16 @@ public class BTMaster {
             btManager.stopScanning();
     }
 
+    //Pre-condition: None
+    //Post-condition: When bluetooth disconnected, inform main activity and start scanning again
     public void disconnected(){
         mainActivity.disconnectedFromBT();
         connected = false;
         startScanning();
     }
 
+    //Pre-condition: None
+    //Post-condition: Close off all connections
     public void closeConnections(){
         if(btManager != null)
         {
@@ -82,17 +91,20 @@ public class BTMaster {
         }
     }
 
+    //Pre-condition: Device needs to be one of the arduinos we've made
+    //Post-condition: Called when an arduino has been found. Figures out which connection type is required and tries to connect to it
     public void deviceFound(BluetoothDevice device){
         stopScans();
+
+        //Inform main activity
         mainActivity.connectedToBT();
         connected = true;
 
         try
         {
-            //int bluetoothType = device.getType();
             String name = device.getName();
 
-            //if (bluetoothType == BluetoothDevice.DEVICE_TYPE_LE)
+            //Check which device it is to determine which kind of connection is needed
             if(name.equals("Ardu"))
             {
                 btleManager.connectToDevice(device);
@@ -106,11 +118,13 @@ public class BTMaster {
         }
         catch(Exception e)
         {
-            //btManager.ConnectToDevice(device);
+            e.printStackTrace();
         }
     }
 
-    public void messageRecieved(String message){
+    //Pre-condition: Message needs to be a number that's a distance passed in from the arduino
+    //Post-condition:Pass message to main activity
+    public void messageReceived(String message){
         mainActivity.messageReceived(message);
     }
 }

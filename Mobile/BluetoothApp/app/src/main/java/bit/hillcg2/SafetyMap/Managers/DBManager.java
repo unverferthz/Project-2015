@@ -16,7 +16,7 @@ public class DBManager{
     private String createQuery;
 
 
-    //Constructor. Need to pass in context from main activity to allow use to the sql database for some reason
+    //Constructor. Need to pass in context from main activity to allow use to the sql database
     public DBManager(Context mainContext){
         //Set context to global so other methods can use it
         context = mainContext;
@@ -24,7 +24,7 @@ public class DBManager{
         //Open existing or create new database
         incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
 
-        //Create the table incase it doesn't already exist
+        //Create the table in case it doesn't already exist
         createQuery = "CREATE TABLE IF NOT EXISTS tblIncident(incidentID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "distance INTEGER NOT NULL, time TEXT NOT NULL, date TEXT NOT NULL, latitude TEXT NOT NULL, " +
                 "longitude TEXT NOT NULL, data_used BIT NOT NULL)";
@@ -34,7 +34,8 @@ public class DBManager{
         incidentDB.close();
     }
 
-    //Inserts the passed in incident into the SQLite database
+    //Pre-condition: Needs database set up. newIncident shouldn't be null
+    //Post-condition: Inserts the passed in incident into the SQLite database
     public void insertIncident(Incident newIncident){
         //Reconnect to database
         incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
@@ -57,7 +58,8 @@ public class DBManager{
         incidentDB.close();
     }
 
-    //Returns an arraylist containing all of the incidents
+    //Pre-condition: None
+    //Post-condition: Returns an arraylist containing all of the incidents
     public ArrayList<Incident> getAllIncidents(){
         //Reconnect to database
         incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
@@ -110,7 +112,8 @@ public class DBManager{
         return incidentArray;
     }
 
-    //Returns an arraylist containing all of the incidents
+    //Pre-condition: None
+    //Post-condition: Returns an arraylist containing all incidents not already uploaded to the server
     public ArrayList<Incident> getNewIncidents(){
         //Reconnect to database
         incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
@@ -170,6 +173,8 @@ public class DBManager{
         return incidentArray;
     }
 
+    //Pre-condition: None
+    //Post-condition: Deletes an incident from the database off of it's ID
     public void deleteIncident(int incidentID){
         incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
 
@@ -180,7 +185,8 @@ public class DBManager{
         incidentDB.close();
     }
 
-    //Changes status of all incidents that haven't been uploaded to say they have
+    //Pre-condition: None
+    //Post-condition: Changes status of all incidents that haven't been uploaded to say they have been
     public void confirmedUpload(){
         //Reconnect to database
         incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
@@ -220,7 +226,8 @@ public class DBManager{
         incidentDB.close();
     }
 
-    //Drops the incident table from DB and recreates it
+    //Pre-condition: None
+    //Post-condition: Drops the incident table from DB and recreates it
     public void resetDatabase(){
         incidentDB = context.openOrCreateDatabase("incidentDB", context.MODE_PRIVATE, null);
 

@@ -17,13 +17,13 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-
 import bit.hillcg2.SafetyMap.Managers.DBManager;
 import bit.hillcg2.SafetyMap.Managers.FTPManager;
 import bit.hillcg2.SafetyMap.Models.Incident;
 
 
 public class ViewIncidents extends Activity {
+    //Globals
     private ArrayAdapter<String> listAdapter;
     private DBManager dbManager;
     private Button btnSendData;
@@ -42,7 +42,8 @@ public class ViewIncidents extends Activity {
         init();
     }
 
-    //Initialize everything
+    //Pre-condition: None
+    //Post-condition: Initialize everything
     public void init(){
         //Get instances of views from layout and set them up
         Button btnBack = (Button)findViewById(R.id.btnBack);
@@ -102,14 +103,15 @@ public class ViewIncidents extends Activity {
         display.getSize(size);
         int height = size.y;
 
+        //Set custom height of listview depending on screen height
         incidentList.getLayoutParams().height = (int)Math.round(height*0.74);
-
 
         //Populate listview with existing incidents
         populateList();
     }
 
-    //Reads in incidents from database and puts them into listview
+    //Pre-condition: None
+    //Post-condition: Reads in incidents from database and puts them into listview
     public void populateList(){
         listAdapter.clear();
 
@@ -123,65 +125,48 @@ public class ViewIncidents extends Activity {
         int counter = 0;
 
         //Loop over all of the incidents
-        for(Incident currIncident : incidentArray){
+        for(Incident i : incidentArray){
             counter++;
             //Get the date value to check if it's the same as spinner values
-            String date = currIncident.getDate();
+            String date = i.getDate();
 
             //Split it apart for comparison
             String[] splitDate = date.split("/");
             String currMonth = splitDate[1];
-            String currDay = splitDate[0];
+            String currDay = splitDate[2];
 
             //Show all months
-            if(selectedMonth.equals("0"))
-            {
-                //Built up string to put into list to display incidents to use
-                String textForList = "Incident " + counter + ":\n";
-
-                textForList += "Distance: " + currIncident.getDistance() + "cm\n";
-                textForList += "Time: " + currIncident.getTime() + "\n";
-                textForList += "Date: " + currIncident.getDate() + "\n";
-                textForList += "Latitude: " + currIncident.getLat() + "\n";
-                textForList += "Longitude: " + currIncident.getLng();
-
-                //Add into adapter and update so it can be seen
-                listAdapter.add(textForList);
-                listAdapter.notifyDataSetChanged();
+            if(selectedMonth.equals("0")) {
+                addIncidentToList(i, counter);
             }
             //Do all days for a month
             else if(currMonth.equals(selectedMonth) && selectedDay.equals("All"))
             {
-                //Built up string to put into list to display incidents to use
-                String textForList = "Incident " + counter + ":\n";
-
-                textForList += "Distance: " + currIncident.getDistance() + "cm\n";
-                textForList += "Time: " + currIncident.getTime() + "\n";
-                textForList += "Date: " + currIncident.getDate() + "\n";
-                textForList += "Latitude: " + currIncident.getLat() + "\n";
-                textForList += "Longitude: " + currIncident.getLng();
-
-                //Add into adapter and update so it can be seen
-                listAdapter.add(textForList);
-                listAdapter.notifyDataSetChanged();
+                addIncidentToList(i, counter);
             }
             //Check if month and day are the same for incident and spinner values
             else if(currMonth.equals(selectedMonth) && currDay.equals(selectedDay))
             {
-                //Built up string to put into list to display incidents to use
-                String textForList = "Incident " + counter + ":\n";
-
-                textForList += "Distance: " + currIncident.getDistance() + "cm\n";
-                textForList += "Time: " + currIncident.getTime() + "\n";
-                textForList += "Date: " + currIncident.getDate() + "\n";
-                textForList += "Latitude: " + currIncident.getLat() + "\n";
-                textForList += "Longitude: " + currIncident.getLng();
-
-                //Add into adapter and update so it can be seen
-                listAdapter.add(textForList);
-                listAdapter.notifyDataSetChanged();
+                addIncidentToList(i, counter);
             }
         }
+    }
+
+    //Pre-condition: None
+    //Post-condition: Adds a single incident into the listview
+    public void addIncidentToList(Incident i, int counter){
+        //Built up string to put into list to display incidents to use
+        String textForList = "Incident " + counter + ":\n";
+
+        textForList += "Distance: " + i.getDistance() + "cm\n";
+        textForList += "Time: " + i.getTime() + "\n";
+        textForList += "Date: " + i.getDate() + "\n";
+        textForList += "Latitude: " + i.getLat() + "\n";
+        textForList += "Longitude: " + i.getLng();
+
+        //Add into adapter and update so it can be seen
+        listAdapter.add(textForList);
+        listAdapter.notifyDataSetChanged();
     }
 
     //Button handler to go back to main screen
@@ -212,6 +197,8 @@ public class ViewIncidents extends Activity {
             //Disable button so it can't be spammed
             btnSendData.setEnabled(false);
 
+            Toast.makeText(getBaseContext(), "Sending...", Toast.LENGTH_LONG).show();
+
             DBManager dbManager = new DBManager(getBaseContext());
             FTPManager ftpManager = new FTPManager(getBaseContext(), dbManager, ViewIncidents.this);
 
@@ -219,13 +206,17 @@ public class ViewIncidents extends Activity {
         }
     }
 
-    //Informs user if the upload was successful
+    //Pre-condition: None
+    //Post-condition: Informs user if the upload was successful
     public void finishedUpload(String uploadMessage){
         btnSendData.setEnabled(true);
         Toast.makeText(getBaseContext(), uploadMessage, Toast.LENGTH_LONG).show();
     }
 
+    //Handler for the month drop down box
     private class monthSelected implements OnItemSelectedListener {
+        //Pre-condition: None
+        //Post-condition: Displays incidents for the selected month
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             //The number of the month that was selected

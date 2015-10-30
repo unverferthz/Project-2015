@@ -4,21 +4,24 @@ import android.location.Location;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-
 import bit.hillcg2.SafetyMap.MainActivity;
 import bit.hillcg2.SafetyMap.Models.Incident;
 
 
 public class IncidentManager {
-    DBManager dbManager;
-    MainActivity mainActivity;
+    private DBManager dbManager;
+    private MainActivity mainActivity;
 
+    //Constructor
     public IncidentManager(MainActivity mainActivity, DBManager dbManager){
         this.dbManager = dbManager;
         this.mainActivity = mainActivity;
     }
 
+    //Pre-condition: None
+    //Post-condition: Add new incident to database
     public void incidentReceived(String newDistance){
+        //Create incident from the distance received
         Incident newIncident = createIncident(newDistance);
 
         //Insert value into DB
@@ -53,6 +56,7 @@ public class IncidentManager {
         //Location is empty but incidents still occurred
         else
         {
+            //Don't create an incident if there wasn't any gps coordinates
             return null;
         }
 

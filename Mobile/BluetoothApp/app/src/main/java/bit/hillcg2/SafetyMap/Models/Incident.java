@@ -3,6 +3,7 @@ package bit.hillcg2.SafetyMap.Models;
 
 public class Incident {
 
+    //Variables
     private int incidentID;
     private int distance;
     private String time;
@@ -10,6 +11,7 @@ public class Incident {
     private String lat;
     private String lng;
 
+    //Constructor if there isn't an ID because it hasn't gone into the database yet
     public Incident(int startDistance, String startTime, String startDate, String startLat, String startLng){
         incidentID = -1;
         distance = startDistance;
@@ -19,6 +21,7 @@ public class Incident {
         lng = startLng;
     }
 
+    //Constructor that includes ID
     public Incident(int startIncidentID, int startDistance, String startTime, String startDate, String startLat, String startLng){
         incidentID = startIncidentID;
         distance = startDistance;

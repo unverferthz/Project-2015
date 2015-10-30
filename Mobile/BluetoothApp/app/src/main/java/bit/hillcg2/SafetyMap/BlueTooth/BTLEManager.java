@@ -10,8 +10,6 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothManager;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.widget.Toast;
@@ -28,6 +26,7 @@ import bit.hillcg2.SafetyMap.MainActivity;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class BTLEManager {
 
+    //Globals
     public static final int SCAN_PERIOD = 5000;
     public static final int SCAN_DELAY = 5000;
 
@@ -50,8 +49,9 @@ public class BTLEManager {
 
     private MainActivity mainActivity;
     private BTMaster btMaster;
-    Handler handler;
+    private Handler handler;
 
+    //Constructor
     public BTLEManager(Activity activity, BTMaster btMaster){
         mainActivity = (MainActivity)activity;
         doubleValueCheckerTimer = new Timer();
@@ -63,7 +63,8 @@ public class BTLEManager {
         BTAdapter = BTManager.getAdapter();
     }
 
-    //Tries to start scanning for bluetooth devices
+    //Pre-condition: None
+    //Post-condition: Tries to start scanning for bluetooth devices
     public void startScanning(){
         //Check if it's already scanning or already connected to the device
         if(!isScanning && !isConnected && !stopLoop)
@@ -85,7 +86,6 @@ public class BTLEManager {
                     if (isScanning) {
                         //Stop the scanning
                         isScanning = false;
-                        //displayMessage("Stopped Scanning");
                         BTAdapter.stopLeScan(scanCallback);
 
                         //Set up to start scanning again after a delay
@@ -96,12 +96,13 @@ public class BTLEManager {
                             }
                         }, SCAN_PERIOD);
                     }
-
                 }
             }, SCAN_DELAY);
         }
     }
 
+    //Pre-condition: Device passed in should be compatible with bluetooth low energy
+    //Post-condition: Starts a connection to the bluetooth device
     public void connectToDevice(final BluetoothDevice device)
     {
         mainActivity.runOnUiThread(new Runnable() {
@@ -113,6 +114,8 @@ public class BTLEManager {
 
     }
 
+    //Pre-condition: None
+    //Post-condition: Stops scanning for bluetooth devices if already scanning
     public void stopScan(){
         stopLoop = true;
         if(isScanning)
@@ -125,6 +128,8 @@ public class BTLEManager {
         }
     }
 
+    //Pre-condition: None
+    //Post-condition: Closes connection to bluetooth device if connection and resets all values related to it
     public void closeConnection(){
         if(connectedGatt != null)
         {
@@ -159,8 +164,6 @@ public class BTLEManager {
             {
                 mainActivity.connectedToBT();
 
-                //Display message to user
-                //displayMessage("Connected!");
                 isConnected = true;
 
                 //Try discover bluetooth devices services
@@ -172,19 +175,15 @@ public class BTLEManager {
             //Check if disconnected
             else if(newState == BluetoothGatt.STATE_DISCONNECTED)
             {
-               // mainActivity.disconnectedFromBT();
                 btMaster.disconnected();
 
                 try
                 {
                     //Make sure that everything is set up so scanning will start if disconnected
-                    //displayMessage("Stopped Scanning");
                     isScanning = false;
                     isConnected = false;
                     stopLoop = false;
                     BTAdapter.stopLeScan(scanCallback);
-
-                    //displayMessage("Disconnected");
 
                     //Close off gatt for a fresh connection
                     connectedGatt.disconnect();
@@ -195,7 +194,7 @@ public class BTLEManager {
                 }
                 catch(NullPointerException e)
                 {
-
+                    e.printStackTrace();
                 }
             }
         }
@@ -242,12 +241,12 @@ public class BTLEManager {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
 
+            //If statement to stop receiving double values from bluetooth
             if(timeBetweenValues == 0.00)
             {
                 try
                 {
-                    //mainActivity.messageReceived(characteristic.getStringValue(0));
-                    btMaster.messageRecieved(characteristic.getStringValue(0));
+                    btMaster.messageReceived(characteristic.getStringValue(0));
                 }
                 catch (Exception e)
                 {
@@ -259,7 +258,6 @@ public class BTLEManager {
                 doubleValueCheckerTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        //timerMethod();
                         timeBetweenValues += 0.01;
                     }
                 }, 0, 10);
@@ -275,7 +273,7 @@ public class BTLEManager {
         }
     };
 
-    //Method for handling scanning
+    //Function for handling scanning
     private BluetoothAdapter.LeScanCallback scanCallback = new BluetoothAdapter.LeScanCallback(){
 
         //Called when a device is found
@@ -289,6 +287,7 @@ public class BTLEManager {
                     isScanning = false;
                     BTAdapter.stopLeScan(scanCallback);
 
+                    //Inform bt master class that device was found
                     btMaster.deviceFound(bluetoothDevice);
                     //connectedGatt = bluetoothDevice.connectGatt(mainActivity.getApplicationContext(), false, mGattCallback);
                 }
@@ -330,7 +329,7 @@ public class BTLEManager {
                                     mostSignificantBit));
                         } catch (IndexOutOfBoundsException e) {
                             // Defensive programming.
-                            //Log.e(LOG_TAG, e.toString());
+                            e.printStackTrace();
                             continue;
                         } finally {
                             // Move the offset to read the next uuid.
