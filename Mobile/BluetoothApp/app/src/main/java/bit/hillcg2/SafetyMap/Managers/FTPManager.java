@@ -178,7 +178,7 @@ public class FTPManager {
             if(outputFile != null)
             {
                 String user = "phone";
-                String password = "phone2015user";
+                String password = "**********";
 
                 //mFTP = new FTPClient();
                 jsch = new JSch();
